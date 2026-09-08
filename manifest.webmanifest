@@ -1,0 +1,14 @@
+{
+  "name": "mi-apiario",
+  "short_name": "mi-apiario",
+  "description": "Gestión digital del apiario",
+  "start_url": "/mi-apiario/",
+  "scope": "/mi-apiario/",
+  "display": "standalone",
+  "background_color": "#f5f1e7",
+  "theme_color": "#294b3b",
+  "lang": "es",
+  "icons": [
+    {"src": "/mi-apiario/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}
