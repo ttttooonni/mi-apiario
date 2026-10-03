@@ -1,40 +1,19 @@
-# 🐝 mi-apiario
+# 🐝 Mi Apiario
 
-PWA para gestionar apiarios, colonias, reinas, sanidad, producción, histórico y copias de seguridad.
+Aplicación gratuita para apicultores: gestión de apiarios, colonias, sanidad, producción e histórico.
 
-## GitHub Pages
+- **Aplicación:** https://ttttooonni.github.io/mi-apiario/
+- **Repositorio:** https://github.com/ttttooonni/mi-apiario
+- **Contacto:** ttttooonni.ia@gmail.com
 
-El proyecto está configurado para publicarse en:
+## Privacidad y datos
 
-`https://ttttooonni.github.io/mi-apiario/`
+La aplicación está pensada para guardar los registros localmente en el dispositivo. No introduzcas información sensible en equipos compartidos. Haz copias de seguridad periódicas y guárdalas en un lugar seguro. Los datos del navegador de la aplicación original no se trasladan automáticamente a este nuevo dominio.
 
-### Publicación
+## Instalar y compartir
 
-```bash
-npm install
-npm run build
-```
+Abre la aplicación desde el enlace anterior en el móvil y, si el navegador lo permite, añádela a la pantalla de inicio. Puedes compartir el enlace público con otros apicultores por WhatsApp; no compartas copias de seguridad que contengan datos privados.
 
-El contenido generado queda en `dist/`. Para GitHub Pages se recomienda usar GitHub Actions.
+## Publicación
 
-## Funcionalidades
-
-- Centro de mando con indicadores.
-- Gestión de apiarios y colonias.
-- Ficha individual de colonia.
-- Seguimiento de reina.
-- Semáforo sanitario.
-- Registro de producción.
-- Histórico de temporada.
-- Copias de seguridad JSON e importación.
-- Almacenamiento local y funcionamiento sin conexión para los datos ya cargados.
-- PWA instalable.
-- Diseño responsive y mobile-first.
-
-## Filosofía
-
-**Apiarios → Colonias → Revisiones → Sanidad → Producción → Histórico**
-
-La primera versión prioriza un núcleo local, rápido y sencillo. La arquitectura puede evolucionar después hacia sincronización, fotografías, meteorología y asistente de IA.
-
-> `mi-cuaderno` no forma parte de este proyecto y debe permanecer intacto.
+Los cambios en la rama `main` construyen y publican la aplicación mediante GitHub Actions. El sitio utiliza la base `/mi-apiario/`.
