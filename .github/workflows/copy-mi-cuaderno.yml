@@ -20,8 +20,8 @@ jobs:
       - name: Copiar el proyecto funcional
         run: |
           set -euo pipefail
-          git clone --depth 1 --branch main https://github.com/ttttooonni/mi-cuaderno.git source
-          rsync -a --delete --exclude='.git/' --exclude='.vercel/' --exclude='attachments/' --exclude='screenshots/' source/ ./
+          git clone --depth 1 --branch main https://github.com/ttttooonni/mi-cuaderno.git /tmp/mi-cuaderno-source
+          rsync -a --delete --exclude='.git/' --exclude='.vercel/' --exclude='attachments/' --exclude='screenshots/' /tmp/mi-cuaderno-source/ ./
           sed -i 's#/mi-cuaderno/#/mi-apiario/#g' .github/workflows/pages.yml
           cat > README.md <<'EOF'
           # 🐝 Mi Apiario
@@ -44,7 +44,7 @@ jobs:
 
           Los cambios en la rama `main` construyen y publican la aplicación mediante GitHub Actions. El sitio utiliza la base `/mi-apiario/`.
           EOF
-          rm -rf source
+          rm -rf /tmp/mi-cuaderno-source
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
