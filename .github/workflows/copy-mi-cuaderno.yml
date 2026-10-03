@@ -1,0 +1,52 @@
+name: Copiar mi-cuaderno a mi-apiario
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  copy:
+    if: ${{ !contains(github.event.head_commit.message, '[skip copy]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio destino
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Copiar el proyecto funcional
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch main https://github.com/ttttooonni/mi-cuaderno.git source
+          rsync -a --delete --exclude='.git/' --exclude='.vercel/' --exclude='attachments/' --exclude='screenshots/' source/ ./
+          sed -i 's#/mi-cuaderno/#/mi-apiario/#g' .github/workflows/pages.yml
+          cat > README.md <<'EOF'
+          # 🐝 Mi Apiario
+
+          Aplicación gratuita para apicultores: gestión de apiarios, colonias, sanidad, producción e histórico.
+
+          - **Aplicación:** https://ttttooonni.github.io/mi-apiario/
+          - **Repositorio:** https://github.com/ttttooonni/mi-apiario
+          - **Contacto:** ttttooonni.ia@gmail.com
+
+          ## Privacidad y datos
+
+          La aplicación está pensada para guardar los registros localmente en el dispositivo. No introduzcas información sensible en equipos compartidos. Haz copias de seguridad periódicas y guárdalas en un lugar seguro. Los datos del navegador de la aplicación original no se trasladan automáticamente a este nuevo dominio.
+
+          ## Instalar y compartir
+
+          Abre la aplicación desde el enlace anterior en el móvil y, si el navegador lo permite, añádela a la pantalla de inicio. Puedes compartir el enlace público con otros apicultores por WhatsApp; no compartas copias de seguridad que contengan datos privados.
+
+          ## Publicación
+
+          Los cambios en la rama `main` construyen y publican la aplicación mediante GitHub Actions. El sitio utiliza la base `/mi-apiario/`.
+          EOF
+          rm -rf source
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Copiar mi-cuaderno a mi-apiario [skip copy]"
+          git push
