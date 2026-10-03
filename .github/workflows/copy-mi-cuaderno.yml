@@ -21,8 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           git clone --depth 1 --branch main https://github.com/ttttooonni/mi-cuaderno.git /tmp/mi-cuaderno-source
-          rsync -a --delete --exclude='.git/' --exclude='.vercel/' --exclude='attachments/' --exclude='screenshots/' /tmp/mi-cuaderno-source/ ./
-          sed -i 's#/mi-cuaderno/#/mi-apiario/#g' .github/workflows/pages.yml
+          rsync -a --delete --exclude='.git/' --exclude='.github/' --exclude='.vercel/' --exclude='attachments/' --exclude='screenshots/' /tmp/mi-cuaderno-source/ ./
           cat > README.md <<'EOF'
           # 🐝 Mi Apiario
 
