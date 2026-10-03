@@ -64,9 +64,24 @@ export function AppShell({ children }: { children: ReactNode }) {
         <InstallAppButton iconOnly variant="ghost" label="Descargar aplicación" />
       </header>
 
-      <main className="mx-auto w-full max-w-5xl px-4 pt-5 pb-28 md:pl-[calc(15rem+2rem)] md:pr-8 md:pt-8 md:pb-12">
+      <main className="mx-auto w-full max-w-5xl px-4 pt-5 pb-8 md:pl-[calc(15rem+2rem)] md:pr-8 md:pt-8 md:pb-12">
         {children}
       </main>
+
+      <footer className="mx-auto w-full max-w-5xl px-4 pb-24 pt-3 text-center text-xs text-muted-foreground md:pl-[calc(15rem+2rem)] md:pr-8 md:pb-6">
+        <span>Mi Apiario · gratuito para apicultores</span>
+        <span className="mx-2">·</span>
+        <a className="underline underline-offset-2" href="mailto:ttttooonni.ia@gmail.com">Contacto</a>
+        <span className="mx-2">·</span>
+        <a
+          className="underline underline-offset-2"
+          href="https://wa.me/?text=Descubre%20Mi%20Apiario%2C%20una%20app%20gratuita%20para%20apicultores%3A%20https%3A%2F%2Fttttooonni.github.io%2Fmi-apiario%2F"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Compartir por WhatsApp
+        </a>
+      </footer>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] md:hidden">
         <div className="grid grid-cols-6">
