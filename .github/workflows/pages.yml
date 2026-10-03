@@ -1,0 +1,61 @@
+name: Publicar GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip pages]'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PAGES_BASE: /mi-apiario/
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Instalar
+        run: npm install --no-audit --no-fund
+
+      - name: Construir sitio estático
+        run: npm run build:pages
+
+      - name: Copiar a la raíz
+        run: |
+          set -euo pipefail
+          test -f dist/pages/index.html
+          rm -rf assets __grok
+          cp -a dist/pages/. .
+          rm -f mi-apiario.zip
+
+      - name: Publicar
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- index.html 404.html .nojekyll assets __grok \
+            favicon-32.png favicon.svg icon-192.png icon-512.png \
+            logo.png manifest.webmanifest og.jpg x-banner.jpg
+          git rm -f --ignore-unmatch mi-apiario.zip public/mi-apiario.zip || true
+          if git diff --cached --quiet; then
+            echo "Sin cambios en el sitio."
+            exit 0
+          fi
+          git commit -m "Publicar sitio [skip pages]"
+          git push
