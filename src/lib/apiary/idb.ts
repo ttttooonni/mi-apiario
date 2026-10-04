@@ -33,6 +33,7 @@ export type PersistStatus = {
   limit: number;
   nearLimit: boolean;
   failed: boolean;
+  corrupt: boolean;
 };
 
 let cache: AppState = emptyClone();
@@ -41,6 +42,7 @@ let writeDepth = 0;
 let persistDirty = false;
 let lastBytes = 0;
 let lastFailed = false;
+let storageCorrupt = false;
 
 function emptyClone(): AppState {
   return {
@@ -76,22 +78,32 @@ function loadFromLocalStorage(): AppState {
     if (!raw) return emptyClone();
     lastBytes = byteLength(raw);
     const parsed = JSON.parse(raw) as Partial<AppState>;
+    const requiredStores: StoreName[] = ["apiaries", "colonies", "queens", "actions", "health", "production", "yearCloses"];
+    if (!parsed || typeof parsed !== "object" || requiredStores.some((key) => !Array.isArray(parsed[key]))) {
+      throw new Error("Los datos guardados no tienen la estructura esperada.");
+    }
     return {
-      apiaries: Array.isArray(parsed.apiaries) ? parsed.apiaries : [],
-      colonies: Array.isArray(parsed.colonies) ? parsed.colonies : [],
-      queens: Array.isArray(parsed.queens) ? parsed.queens : [],
-      actions: Array.isArray(parsed.actions) ? parsed.actions : [],
-      health: Array.isArray(parsed.health) ? parsed.health : [],
-      production: Array.isArray(parsed.production) ? parsed.production : [],
-      yearCloses: Array.isArray(parsed.yearCloses) ? parsed.yearCloses : [],
+      apiaries: parsed.apiaries!,
+      colonies: parsed.colonies!,
+      queens: parsed.queens!,
+      actions: parsed.actions!,
+      health: parsed.health!,
+      production: parsed.production!,
+      yearCloses: parsed.yearCloses!,
     };
   } catch {
+    storageCorrupt = true;
+    lastFailed = true;
     return emptyClone();
   }
 }
 
 function persistNow(): boolean {
   persistDirty = false;
+  if (storageCorrupt) {
+    lastFailed = true;
+    return false;
+  }
   if (typeof window === "undefined") {
     lastFailed = false;
     return true;
@@ -131,6 +143,7 @@ export function getPersistStatus(): PersistStatus {
     limit: HARD_HINT_BYTES,
     nearLimit: lastBytes >= SOFT_LIMIT_BYTES,
     failed: lastFailed,
+    corrupt: storageCorrupt,
   };
 }
 
@@ -160,8 +173,31 @@ export async function loadState(): Promise<AppState> {
 
 export async function replaceAll(state: AppState): Promise<void> {
   hydrate();
+  if (storageCorrupt) {
+    lastFailed = true;
+    return;
+  }
   cache = cloneState(state);
   persistNow();
+}
+
+/** Explicit recovery path used only after a validated backup has been imported. */
+export async function restoreFromBackup(state: AppState): Promise<void> {
+  hydrate();
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem(LS_KEY, JSON.stringify(state));
+    } catch {
+      lastFailed = true;
+      throw new Error("No se pudo restaurar la copia. Los datos anteriores se han conservado.");
+    }
+  }
+  cache = cloneState(state);
+  storageCorrupt = false;
+  lastFailed = false;
+  lastBytes = typeof window === "undefined" ? 0 : byteLength(JSON.stringify(cache));
+  hydrated = true;
+  persistDirty = false;
 }
 
 export async function putRecord<T>(store: StoreName, row: T): Promise<void> {
