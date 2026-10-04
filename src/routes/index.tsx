@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Activity, Archive, ArrowRight, CalendarClock, CheckSquare, Flower2, MapPin, Plus, ScanLine, ShieldCheck } from "lucide-react";
+import { Activity, Archive, ArrowRight, CalendarClock, CheckSquare, Flower2, MapPin, Plus, ScanLine, ShieldCheck, Warehouse } from "lucide-react";
 import { ApiaryFormDialog } from "@/components/apiary/apiary-form";
 import { EmptyState } from "@/components/apiary/empty-state";
 import { InstallAppButton } from "@/components/apiary/install-app";
