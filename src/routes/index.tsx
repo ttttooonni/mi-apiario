@@ -23,6 +23,7 @@ import {
   useAppMutations,
   useNotebook,
   varroaTreatedIds,
+  COLONY_KIND_LABEL,
 } from "@/lib/apiary";
 
 export const Route = createFileRoute("/")({ component: Home });
@@ -42,6 +43,7 @@ function Home() {
   const products = productionOfYear(data.production, year);
   const treated = varroaTreatedIds(data, year);
   const pendingVarroa = coloniesMissingVarroa(data, year);
+  const pendingTasks = (data.tasks ?? []).filter((task) => !task.completedAt).sort((a, b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999"));
 
   return (
     <div>
@@ -63,6 +65,18 @@ function Home() {
             <StatCard label="Núcleos" value={nucCount(data)} />
             <StatCard label={`Miel ${year}`} value={formatKg(honeyThisYear(data))} />
           </div>
+
+
+          <Card className="mt-5 p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div><h2 className="font-display text-xl font-medium">Tareas pendientes</h2><p className="mt-1 text-sm text-muted-foreground">Lo próximo que tienes que revisar en el apiario.</p></div>
+              <span className="rounded-full bg-secondary px-3 py-1 text-sm font-semibold tabular-nums">{pendingTasks.length}</span>
+            </div>
+            {pendingTasks.length ? <div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm">
+              <thead><tr className="border-b text-xs tracking-wide text-muted-foreground uppercase"><th className="py-2 pr-3 font-medium">Tarea</th><th className="py-2 pr-3 font-medium">Colonia</th><th className="py-2 pr-3 font-medium">Fecha</th><th className="py-2 font-medium">Prioridad</th></tr></thead>
+              <tbody>{pendingTasks.slice(0, 8).map((task) => { const colony = data.colonies.find((item) => item.id === task.colonyId); const apiary = colony ? data.apiaries.find((item) => item.id === colony.apiaryId) : undefined; return <tr key={task.id} className="border-b last:border-0"><td className="py-3 pr-3 font-medium"><Link to="/colonias/$colonyId" params={{ colonyId: task.colonyId }} className="hover:text-primary hover:underline">{task.title}</Link>{task.notes ? <p className="mt-0.5 max-w-48 truncate text-xs font-normal text-muted-foreground">{task.notes}</p> : null}</td><td className="py-3 pr-3"><Link to="/colonias/$colonyId" params={{ colonyId: task.colonyId }} className="text-muted-foreground hover:text-primary">{colony ? COLONY_KIND_LABEL[colony.kind] + " " + colony.number : "Colonia"}{apiary ? " · " + apiary.name : ""}</Link></td><td className="py-3 pr-3 whitespace-nowrap text-muted-foreground">{task.dueDate ? new Date(task.dueDate + "T12:00:00").toLocaleDateString("es-ES") : "—"}</td><td className="py-3"><span className={"rounded-full px-2 py-1 text-xs " + (task.priority === "high" ? "bg-amber-100 text-amber-900" : "bg-secondary text-secondary-foreground")}>{task.priority === "high" ? "Alta" : task.priority === "low" ? "Baja" : "Normal"}</span></td></tr>; })}</tbody>
+            </table>{pendingTasks.length > 8 ? <p className="pt-2 text-xs text-muted-foreground">Mostrando 8 de {pendingTasks.length} tareas. Entra en una colonia para gestionar su lista.</p> : null}</div> : <p className="mt-3 rounded-xl bg-secondary/50 p-3 text-sm text-muted-foreground">No tienes tareas pendientes. Puedes añadirlas desde la ficha de cada colmena o núcleo.</p>}
+          </Card>
 
           <Card className="mt-5 border-primary/20 bg-card p-5 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
