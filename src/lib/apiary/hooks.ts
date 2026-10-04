@@ -12,7 +12,7 @@ import {
   replaceAll,
 } from "./idb";
 import { loadSampleData } from "./sample";
-import { EMPTY_STATE, type AppState, type Colony, type HealthRecord, type Queen, type YearClose } from "./types";
+import { EMPTY_STATE, type AppState, type Colony, type HealthRecord, type Queen, type YearClose, type ColonyTask } from "./types";
 
 export const APP_QUERY_KEY = ["app"] as const;
 
@@ -80,6 +80,16 @@ export function useAppMutations() {
 
   const saveProduction = useMutation({
     mutationFn: (row: AppState["production"][number]) => putRecord("production", row),
+    onSuccess: invalidate,
+  });
+
+  const saveTask = useMutation({
+    mutationFn: (row: ColonyTask) => putRecord("tasks", row),
+    onSuccess: invalidate,
+  });
+
+  const removeTask = useMutation({
+    mutationFn: (id: string) => deleteRecord("tasks", id),
     onSuccess: invalidate,
   });
 
@@ -151,6 +161,8 @@ export function useAppMutations() {
     saveAction,
     saveProduction,
     saveYearClose,
+    saveTask,
+    removeTask,
     saveHealth,
     saveHealthMany,
     removeHealthRecord,
