@@ -59,17 +59,23 @@ function ApiariesPage() {
             const nucs = nucCount(data, apiary.id);
             return (
               <li key={apiary.id}>
-                <Card className="relative p-5">
+                <Card className="relative overflow-hidden border-l-4 border-l-emerald-700/70 bg-emerald-50/40 p-5 dark:bg-emerald-950/10">
                   <Link to="/apiarios/$apiaryId" params={{ apiaryId: apiary.id }} className="block pr-10">
+                    <span className="mb-2 inline-flex items-center rounded-full bg-emerald-800/10 px-2.5 py-1 text-xs font-semibold tracking-wide text-emerald-900 dark:text-emerald-200">
+                      APIARIO
+                    </span>
                     <h2 className="font-display text-xl font-medium tracking-tight">{apiary.name}</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {apiary.location || "Sin ubicación"}
                     </p>
-                    <p className="mt-3 text-sm tabular-nums">
-                      {hives} {hives === 1 ? "colmena" : "colmenas"}
-                      <span className="mx-2 text-border">·</span>
-                      {nucs} {nucs === 1 ? "núcleo" : "núcleos"}
-                    </p>
+                    <div className="mt-4 flex flex-wrap items-center gap-2 text-sm tabular-nums">
+                      <span className="rounded-lg border border-emerald-800/15 bg-background/80 px-3 py-1.5">
+                        {hives} {hives === 1 ? "colmena" : "colmenas"}
+                      </span>
+                      <span className="rounded-lg border border-amber-700/20 bg-amber-50/80 px-3 py-1.5 text-amber-950 dark:bg-amber-950/30 dark:text-amber-100">
+                        {nucs} {nucs === 1 ? "núcleo" : "núcleos"}
+                      </span>
+                    </div>
                   </Link>
                   <div className="absolute top-3 right-3">
                     <DropdownMenu>
