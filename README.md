@@ -14,6 +14,10 @@ La aplicación está pensada para guardar los registros localmente en el disposi
 
 Abre la aplicación desde el enlace anterior en el móvil y, si el navegador lo permite, añádela a la pantalla de inicio. Puedes compartir el enlace público con otros apicultores por WhatsApp; no compartas copias de seguridad que contengan datos privados.
 
+## PWA e identidad visual
+
+La PWA usa un manifiesto estático propio (`manifest.webmanifest`) y los iconos públicos de Mi Apiario. La identidad visual emplea fondo crema, verde bosque y dorado miel. El build de GitHub Pages genera el manifiesto con las rutas correctas bajo `/mi-apiario/`, sin depender de rutas internas de herramientas externas.
+
 ## Publicación
 
-Los cambios en la rama `main` construyen y publican la aplicación mediante GitHub Actions. El sitio utiliza la base `/mi-apiario/`.
+Los cambios en la rama `main` construyen y publican la aplicación mediante GitHub Actions. El sitio utiliza la base `/mi-apiario/`. La información de apicultura se mantiene local en el dispositivo; exporta una copia de seguridad antes de cambiar de dispositivo o borrar datos del navegador.
