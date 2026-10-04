@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ActionFormDialog } from "@/components/apiary/action-form";
 import { ColonyQrTools } from "@/components/apiary/colony-qr-tools";
+import { ColonyTasks } from "@/components/apiary/colony-tasks";
 import { ColonyFormDialog } from "@/components/apiary/colony-form";
 import { ColonyKindBadge } from "@/components/apiary/colony-kind-badge";
 import { ConfirmDelete } from "@/components/apiary/confirm-delete";
@@ -43,7 +44,7 @@ function ColonyPage() {
   const { colonyId } = Route.useParams();
   const navigate = useNavigate();
   const { data } = useNotebook();
-  const { saveColony, saveQueen, saveAction, saveHealthMany, removeColony, removeAction } = useAppMutations();
+  const { saveColony, saveQueen, saveAction, saveHealthMany, removeColony, removeAction, saveTask, removeTask } = useAppMutations();
   const [actionOpen, setActionOpen] = useState(false);
   const [presetType, setPresetType] = useState<ActionType | undefined>();
   const [healthOpen, setHealthOpen] = useState(false);
@@ -73,6 +74,7 @@ function ColonyPage() {
   const history = queenHistory(data, colony.id);
   const previous = history.filter((item) => item.retiredAt);
   const logs = actionsOf(data, colony.id);
+  const colonyTasks = (data.tasks ?? []).filter((task) => task.colonyId === colony.id);
   const inventory = inventoryForColony(data.actions, colony.id);
   const visibleLogs = showAllLogs ? logs : logs.slice(0, 40);
   const healthRows = healthOfColony(data, colony.id);
