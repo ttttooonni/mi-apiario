@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { ApiaryFormDialog } from "@/components/apiary/apiary-form";
 import { EmptyState } from "@/components/apiary/empty-state";
 import { InstallAppButton } from "@/components/apiary/install-app";
-import { StatCard } from "@/components/apiary/stat-card";
 import { useTutorial } from "@/components/apiary/tutorial";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -59,13 +58,34 @@ function Home() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <StatCard label="Apiarios" value={data.apiaries.length} />
-            <StatCard label="Colmenas" value={hiveCount(data)} />
-            <StatCard label="Núcleos" value={nucCount(data)} />
-            <StatCard label={`Miel ${year}`} value={formatKg(honeyThisYear(data))} />
-          </div>
-
+          <Card className="p-3 sm:p-4">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <h2 className="font-display text-lg font-medium">Resumen del apiario</h2>
+              <span className="text-xs text-muted-foreground">{year}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <Link to="/apiarios" className="group rounded-xl border border-border/80 bg-background/70 p-3 transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <span className="block text-xs font-medium tracking-wide text-muted-foreground">Apiarios</span>
+                <span className="mt-1 block font-display text-2xl font-semibold tabular-nums group-hover:text-primary">{data.apiaries.length}</span>
+                <span className="mt-1 block text-xs text-muted-foreground">Ver apiarios →</span>
+              </Link>
+              <Link to="/colonias" className="group rounded-xl border border-border/80 bg-background/70 p-3 transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <span className="block text-xs font-medium tracking-wide text-muted-foreground">Colmenas</span>
+                <span className="mt-1 block font-display text-2xl font-semibold tabular-nums group-hover:text-primary">{hiveCount(data)}</span>
+                <span className="mt-1 block text-xs text-muted-foreground">Ver colonias →</span>
+              </Link>
+              <Link to="/colonias" className="group rounded-xl border border-border/80 bg-background/70 p-3 transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <span className="block text-xs font-medium tracking-wide text-muted-foreground">Núcleos</span>
+                <span className="mt-1 block font-display text-2xl font-semibold tabular-nums group-hover:text-primary">{nucCount(data)}</span>
+                <span className="mt-1 block text-xs text-muted-foreground">Ver colonias →</span>
+              </Link>
+              <Link to="/produccion" className="group rounded-xl border border-border/80 bg-background/70 p-3 transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <span className="block text-xs font-medium tracking-wide text-muted-foreground">Miel {year}</span>
+                <span className="mt-1 block font-display text-2xl font-semibold tabular-nums group-hover:text-primary">{formatKg(honeyThisYear(data))}</span>
+                <span className="mt-1 block text-xs text-muted-foreground">Ver producción →</span>
+              </Link>
+            </div>
+          </Card>
 
           <Card className="mt-5 p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3">
