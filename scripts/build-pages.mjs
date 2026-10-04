@@ -117,7 +117,7 @@ const updateGuard = [
   '  window.setInterval(check, 120000);',
   '})();',
   '</script>',
-].join("\\n");
+].join("\n");
 const guarded = rewritten.replace("</head>", updateGuard + "</head>");
 writeFileSync(indexPath, guarded);
 writeFileSync(join(dest, "404.html"), guarded);
