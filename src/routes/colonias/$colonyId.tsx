@@ -26,6 +26,7 @@ import {
   healthOfColony,
   healthSummary,
   lastVarroaTreatment,
+  inventoryForColony,
   newId,
   queenHistory,
   useAppMutations,
@@ -71,6 +72,7 @@ function ColonyPage() {
   const history = queenHistory(data, colony.id);
   const previous = history.filter((item) => item.retiredAt);
   const logs = actionsOf(data, colony.id);
+  const inventory = inventoryForColony(data.actions, colony.id);
   const visibleLogs = showAllLogs ? logs : logs.slice(0, 40);
   const healthRows = healthOfColony(data, colony.id);
   const lastVarroa = lastVarroaTreatment(data, colony.id);
@@ -123,6 +125,16 @@ function ColonyPage() {
       {colony.notes ? (
         <p className="mb-5 max-w-2xl text-sm text-muted-foreground">{colony.notes}</p>
       ) : null}
+
+      <Card className="mb-6 p-5">
+        <h2 className="font-display text-lg font-medium">Material registrado</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Estimación calculada desde el historial. Añadir o retirar alzas no modifica los cuadros.</p>
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          <div className="rounded-xl bg-muted/60 p-3"><p className="text-xs text-muted-foreground">Cuadros normales</p><p className="mt-1 text-2xl font-semibold tabular-nums">{inventory.standardFrames}</p></div>
+          <div className="rounded-xl bg-muted/60 p-3"><p className="text-xs text-muted-foreground">Cuadros media alza</p><p className="mt-1 text-2xl font-semibold tabular-nums">{inventory.mediumFrames}</p></div>
+          <div className="rounded-xl bg-muted/60 p-3"><p className="text-xs text-muted-foreground">Alzas</p><p className="mt-1 text-2xl font-semibold tabular-nums">{inventory.supers}</p></div>
+        </div>
+      </Card>
 
       <Card className="mb-6 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
