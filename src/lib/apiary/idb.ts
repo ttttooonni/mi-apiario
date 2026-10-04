@@ -13,6 +13,7 @@ export const STORE_NAMES = [
   "health",
   "production",
   "yearCloses",
+  "tasks",
 ] as const;
 
 type StoreName = (typeof STORE_NAMES)[number];
@@ -25,6 +26,7 @@ const STORE_KEYS: Record<StoreName, keyof AppState> = {
   health: "health",
   production: "production",
   yearCloses: "yearCloses",
+  tasks: "tasks",
 };
 
 export type PersistStatus = {
@@ -53,6 +55,7 @@ function emptyClone(): AppState {
     health: [],
     production: [],
     yearCloses: [],
+    tasks: [],
   };
 }
 
@@ -90,6 +93,7 @@ function loadFromLocalStorage(): AppState {
       health: parsed.health!,
       production: parsed.production!,
       yearCloses: parsed.yearCloses!,
+      tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
     };
   } catch {
     storageCorrupt = true;
@@ -235,6 +239,9 @@ export async function deleteRecord(store: StoreName, id: IDBValidKey): Promise<v
     case "yearCloses":
       cache.yearCloses = cache.yearCloses.filter((item) => item.year !== id);
       break;
+    case "tasks":
+      cache.tasks = cache.tasks.filter((item) => item.id !== id);
+      break;
   }
   touch();
 }
@@ -249,6 +256,7 @@ export async function deleteApiaryCascade(_state: AppState, apiaryId: string): P
     cache.queens = cache.queens.filter((item) => !colonyIds.has(item.colonyId));
     cache.actions = cache.actions.filter((item) => !colonyIds.has(item.colonyId));
     cache.health = cache.health.filter((item) => !colonyIds.has(item.colonyId));
+    cache.tasks = cache.tasks.filter((item) => !colonyIds.has(item.colonyId));
     persistDirty = true;
   });
 }
@@ -259,6 +267,7 @@ export async function deleteColonyCascade(_state: AppState, colonyId: string): P
     cache.queens = cache.queens.filter((item) => item.colonyId !== colonyId);
     cache.actions = cache.actions.filter((item) => item.colonyId !== colonyId);
     cache.health = cache.health.filter((item) => item.colonyId !== colonyId);
+    cache.tasks = cache.tasks.filter((item) => item.colonyId !== colonyId);
     persistDirty = true;
   });
 }
