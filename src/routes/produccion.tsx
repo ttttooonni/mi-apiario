@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import {
   currentYear, formatDate, formatKg, newId, nowIso, PRODUCT_LABEL, PRODUCT_ORDER,
-  productionOfYear, suggestLot, todayISO, useAppMutations, useNotebook,
+  productionOfYear, suggestLot, todayISO, useAppMutations, useNotebook, yearOf,
   type ProductKind, type ProductionRecord,
 } from "@/lib/apiary";
 
@@ -29,10 +29,13 @@ function ProductionPage() {
   const [notes, setNotes] = useState("");
   const [lotTouched, setLotTouched] = useState(false);
   const [deleting, setDeleting] = useState<ProductionRecord | null>(null);
+  const [yearFilter, setYearFilter] = useState<number | "all">(year);
   const lots = useMemo(() => data.production.map((item) => item.lot), [data]);
   const suggested = useMemo(() => suggestLot(product, date, lots), [product, date, lots]);
   const totals = productionOfYear(data.production, year);
-  const records = [...data.production].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
+  const years = [...new Set([year, ...data.production.map((item) => yearOf(item.date))])].sort((a, b) => b - a);
+  const records = [...data.production].filter((item) => yearFilter === "all" || yearOf(item.date) === yearFilter).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const qty = Number(quantity);
@@ -43,10 +46,11 @@ function ProductionPage() {
     toast.success("Producción registrada");
     setQuantity(""); setNotes(""); setLotTouched(false); setLot("");
   }
+
   return <div className="space-y-5">
     <PageHeader title="Producción" description="Registro de lo obtenido en la sala de extracción. Independiente de apiarios y números de colmena." />
     <Card className="border-amber-800/20 bg-amber-50/60 p-5 dark:bg-amber-950/20">
-      <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Temporada actual</p><h2 className="mt-1 font-display text-2xl font-semibold">Producción {year}</h2><p className="mt-1 text-sm text-muted-foreground">Totales calculados con los registros fechados en este año.</p></div><Button asChild variant="outline"><Link to="/historico">Ver temporadas anteriores</Link></Button></div>
+      <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Temporada actual</p><h2 className="mt-1 font-display text-2xl font-semibold">Producción {year}</h2><p className="mt-1 text-sm text-muted-foreground">Totales calculados con los registros fechados en este año.</p></div><Button asChild variant="outline"><Link to="/historico">Ver cierre anual</Link></Button></div>
       <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{PRODUCT_ORDER.map((item) => <div key={item} className="rounded-xl border border-border/70 bg-card p-3"><dt className="text-sm text-muted-foreground">{PRODUCT_LABEL[item]}</dt><dd className="mt-1 font-display text-2xl font-semibold tabular-nums">{totals[item] > 0 ? formatKg(totals[item]) : "—"}</dd><dd className="text-xs text-muted-foreground">kg registrados</dd></div>)}</dl>
     </Card>
     <Card className="p-5">
@@ -60,7 +64,15 @@ function ProductionPage() {
         <div className="sm:col-span-2"><Button type="submit">Guardar registro</Button></div>
       </form>
     </Card>
-    <section><h2 className="mb-3 font-display text-lg font-medium">Todos los registros</h2>{records.length === 0 ? <EmptyState title="Sin producción registrada" description="Los lotes se guardan aquí, no en la ficha de cada colmena." /> : <div className="overflow-x-auto rounded-2xl bg-card shadow-[var(--shadow-border)]"><table className="w-full min-w-[32rem] text-left text-sm"><thead className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase"><tr><th className="px-4 py-3 font-medium">Producto</th><th className="px-4 py-3 font-medium">Fecha</th><th className="px-4 py-3 font-medium">Cantidad</th><th className="px-4 py-3 font-medium">Lote</th><th className="px-4 py-3 font-medium"><span className="sr-only">Acciones</span></th></tr></thead><tbody>{records.map((record) => <tr key={record.id} className="border-b border-border last:border-0"><td className="px-4 py-3">{PRODUCT_LABEL[record.product]}</td><td className="px-4 py-3 text-muted-foreground">{formatDate(record.date)}</td><td className="px-4 py-3 tabular-nums">{formatKg(record.quantity)}</td><td className="px-4 py-3 font-mono text-xs">{record.lot}</td><td className="px-4 py-3 text-right"><button type="button" className="text-sm text-muted-foreground hover:text-destructive" onClick={() => setDeleting(record)}>Eliminar</button></td></tr>)}</tbody></table></div>}</section>
+    <section>
+      <div className="mb-3 flex flex-wrap items-center gap-2"><h2 className="mr-auto font-display text-lg font-medium">Registros</h2>{years.map((item) => <YearChip key={item} active={yearFilter === item} onClick={() => setYearFilter(item)}>{String(item)}</YearChip>)}<YearChip active={yearFilter === "all"} onClick={() => setYearFilter("all")}>Todos</YearChip></div>
+      <p className="mb-3 text-sm text-muted-foreground">{yearFilter === "all" ? "Todos los años" : `Temporada ${yearFilter}`} · {records.length} registros</p>
+      {records.length === 0 ? <EmptyState title="Sin producción registrada" description="No hay lotes registrados en esta temporada." /> : <div className="overflow-x-auto rounded-2xl bg-card shadow-[var(--shadow-border)]"><table className="w-full min-w-[32rem] text-left text-sm"><thead className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase"><tr><th className="px-4 py-3 font-medium">Producto</th><th className="px-4 py-3 font-medium">Fecha</th><th className="px-4 py-3 font-medium">Cantidad</th><th className="px-4 py-3 font-medium">Lote</th><th className="px-4 py-3 font-medium"><span className="sr-only">Acciones</span></th></tr></thead><tbody>{records.map((record) => <tr key={record.id} className="border-b border-border last:border-0"><td className="px-4 py-3">{PRODUCT_LABEL[record.product]}</td><td className="px-4 py-3 text-muted-foreground">{formatDate(record.date)}</td><td className="px-4 py-3 tabular-nums">{formatKg(record.quantity)}</td><td className="px-4 py-3 font-mono text-xs">{record.lot}</td><td className="px-4 py-3 text-right"><button type="button" className="text-sm text-muted-foreground hover:text-destructive" onClick={() => setDeleting(record)}>Eliminar</button></td></tr>)}</tbody></table></div>}
+    </section>
     <ConfirmDelete open={Boolean(deleting)} onOpenChange={(open) => { if (!open) setDeleting(null); }} title="Eliminar registro" description={deleting ? `Se quitará el lote ${deleting.lot} (${formatKg(deleting.quantity)}).` : ""} onConfirm={async () => { if (!deleting) return; await removeProduction.mutateAsync(deleting.id); toast.success("Registro eliminado"); setDeleting(null); }} />
   </div>;
+}
+
+function YearChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: string }) {
+  return <button type="button" onClick={onClick} className={active ? "rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground" : "rounded-lg bg-secondary px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"}>{children}</button>;
 }
