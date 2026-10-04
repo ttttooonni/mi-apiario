@@ -1,0 +1,43 @@
+name: Validar Mi Apiario
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, "audit/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PAGES_BASE: /mi-apiario/
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Instalar dependencias
+        run: npm install --no-audit --no-fund
+      - name: Comprobar tipos
+        run: npm run typecheck
+      - name: Ejecutar pruebas
+        run: npm test
+      - name: Revisar invariantes de autenticación
+        run: npm run check:auth
+      - name: Construir versión estática para GitHub Pages
+        run: npm run build:pages
+      - name: Verificar salida y referencias PWA
+        run: |
+          set -euo pipefail
+          test -s dist/pages/index.html
+          test -s dist/pages/manifest.webmanifest
+          test -s dist/pages/404.html
+          grep -q 'Versión de evaluación' dist/pages/index.html
+          ! grep -q '__grok' dist/pages/index.html
+          node -e "const fs=require('fs'); const m=JSON.parse(fs.readFileSync('dist/pages/manifest.webmanifest','utf8')); if(m.name!=='Mi Apiario'||m.start_url!=='/mi-apiario/'||m.scope!=='/mi-apiario/') process.exit(1); console.log('Manifest PWA correcto:', m.name, m.start_url)"
