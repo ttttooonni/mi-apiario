@@ -66,9 +66,13 @@ function DataPage() {
             {data.actions.length} acciones · {data.production.length} lotes
             {storage.bytes > 0 ? ` · ${formatStorageSize(storage.bytes)}` : ""}
           </p>
-          {storage.failed ? (
-            <p className="mt-2 text-sm text-destructive">
-              El último guardado no cupo en este navegador. Descarga una copia JSON ahora.
+          {storage.corrupt ? (
+            <p role="alert" className="mt-2 text-sm text-destructive">
+              No se han podido leer los datos guardados. Para evitar perderlos, la aplicación ha bloqueado los guardados automáticos. No cargues ejemplos ni vacíes el cuaderno. Importa una copia de seguridad válida para recuperar los datos.
+            </p>
+          ) : storage.failed ? (
+            <p role="alert" className="mt-2 text-sm text-destructive">
+              El último guardado no se pudo completar. Descarga una copia JSON si los datos siguen visibles y libera espacio antes de continuar.
             </p>
           ) : storage.nearLimit ? (
             <p className="mt-2 text-sm text-muted-foreground">
