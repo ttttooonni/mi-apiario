@@ -3,7 +3,7 @@
  * Static SPA build for GitHub Pages (no Node server).
  * Default `npm run build` stays on the Vercel/Nitro path.
  *
- *   PAGES_BASE=/mi-cuaderno/ npm run build:pages
+ *   PAGES_BASE=/mi-apiario/ npm run build:pages
  */
 import {
   copyFileSync,
@@ -20,7 +20,7 @@ import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 const dest = join(root, "dist", "pages");
-const base = process.env.PAGES_BASE || "/mi-cuaderno/";
+const base = process.env.PAGES_BASE || "/mi-apiario/";
 const basePrefix = base.endsWith("/") ? base.slice(0, -1) : base;
 const startUrl = `${basePrefix}/`;
 
@@ -118,30 +118,30 @@ const updateGuard = [
   '})();',
   '</script>',
 ].join("\n");
-const guarded = rewritten.replace("</head>", updateGuard + "</head>");
+const nativePwaHead = `<link rel="manifest" href="${basePrefix}/manifest.webmanifest"><link rel="apple-touch-icon" href="${basePrefix}/icon-192.png"><meta name="theme-color" content="#244A35">`;
+const pwaCleaned = rewritten.replace(/<link rel="manifest" href="[^"]*">/g, "").replace(/<link rel="apple-touch-icon" href="[^"]*">/g, "").replace(/<meta name="theme-color" content="[^"]*">/g, "");
+const guarded = pwaCleaned.replace("</head>", nativePwaHead + updateGuard + "</head>");
 writeFileSync(indexPath, guarded);
 writeFileSync(join(dest, "404.html"), guarded);
 writeFileSync(join(dest, ".nojekyll"), "");
 
 const manifest = {
-  name: "mi-apiario",
-  short_name: "mi-apiario",
+  name: "Mi Apiario",
+  short_name: "Mi Apiario",
   id: startUrl,
   start_url: startUrl,
   scope: startUrl,
   display: "standalone",
-  background_color: "#f3efe4",
-  theme_color: "#f3efe4",
+  background_color: "#F6F1E6",
+  theme_color: "#244A35",
+  description: "Cuaderno de explotación apícola gratuito, local y sencillo.",
   lang: "es",
   icons: [
     { src: `${startUrl}icon-192.png`, sizes: "192x192", type: "image/png", purpose: "any" },
     { src: `${startUrl}icon-512.png`, sizes: "512x512", type: "image/png", purpose: "any" },
-    { src: `${startUrl}__grok/icon-180.png`, sizes: "180x180", type: "image/png" },
   ],
 };
 const manifestJson = `${JSON.stringify(manifest, null, 2)}\n`;
-mkdirSync(join(dest, "__grok"), { recursive: true });
-writeFileSync(join(dest, "__grok", "manifest.webmanifest"), manifestJson);
 writeFileSync(join(dest, "manifest.webmanifest"), manifestJson);
 
 console.log(`[build-pages] Listo: ${dest} (base ${startUrl})`);
