@@ -50,6 +50,6 @@ jobs:
           test -s dist/pages/index.html
           test -s dist/pages/manifest.webmanifest
           test -s dist/pages/404.html
-          grep -q 'Versión de evaluación' dist/pages/index.html
+          ! grep -q 'Versión de evaluación' dist/pages/index.html
           ! grep -q '__grok' dist/pages/index.html
           node -e "const fs=require('fs'); const m=JSON.parse(fs.readFileSync('dist/pages/manifest.webmanifest','utf8')); if(m.name!=='Mi Apiario'||m.start_url!=='/mi-apiario/'||m.scope!=='/mi-apiario/') process.exit(1); console.log('Manifest PWA correcto:', m.name, m.start_url)"
