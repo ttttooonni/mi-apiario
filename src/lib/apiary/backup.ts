@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { todayISO } from "./dates";
-import { replaceAll } from "./idb";
+import { restoreFromBackup } from "./idb";
 import { APP_ID, DATA_VERSION, type AppState, type BackupFile } from "./types";
 
 export type BackupSaveResult = "saved" | "downloaded" | "copied" | "cancelled";
@@ -286,5 +286,5 @@ export function parseBackup(raw: string): AppState {
 
 export async function importBackup(raw: string): Promise<void> {
   const state = parseBackup(raw);
-  await replaceAll(state);
+  await restoreFromBackup(state);
 }
