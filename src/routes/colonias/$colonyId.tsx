@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ActionFormDialog } from "@/components/apiary/action-form";
+import { ColonyQrTools } from "@/components/apiary/colony-qr-tools";
 import { ColonyFormDialog } from "@/components/apiary/colony-form";
 import { ColonyKindBadge } from "@/components/apiary/colony-kind-badge";
 import { ConfirmDelete } from "@/components/apiary/confirm-delete";
@@ -121,6 +122,10 @@ function ColonyPage() {
           </Link>
         ) : null}
       </div>
+
+      {colony.photo ? <img src={colony.photo} alt={`Foto de ${noun.toLowerCase()} ${colony.number}`} className="mb-5 max-h-64 w-full rounded-2xl border object-cover" /> : null}
+
+      <ColonyQrTools colonyId={colony.id} label={`${noun} ${colony.number}`} />
 
       {colony.notes ? (
         <p className="mb-5 max-w-2xl text-sm text-muted-foreground">{colony.notes}</p>
