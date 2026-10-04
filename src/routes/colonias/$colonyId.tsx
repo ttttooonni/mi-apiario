@@ -128,11 +128,22 @@ function ColonyPage() {
 
       <Card className="mb-6 p-5">
         <h2 className="font-display text-lg font-medium">Material registrado</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Estimación calculada desde el historial. Añadir o retirar alzas no modifica los cuadros.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Estimación calculada desde el historial. Añadir o retirar alzas no modifica los cuadros.
+        </p>
         <div className="mt-4 grid grid-cols-3 gap-3">
-          <div className="rounded-xl bg-muted/60 p-3"><p className="text-xs text-muted-foreground">Cuadros normales</p><p className="mt-1 text-2xl font-semibold tabular-nums">{inventory.standardFrames}</p></div>
-          <div className="rounded-xl bg-muted/60 p-3"><p className="text-xs text-muted-foreground">Cuadros media alza</p><p className="mt-1 text-2xl font-semibold tabular-nums">{inventory.mediumFrames}</p></div>
-          <div className="rounded-xl bg-muted/60 p-3"><p className="text-xs text-muted-foreground">Alzas</p><p className="mt-1 text-2xl font-semibold tabular-nums">{inventory.supers}</p></div>
+          <div className="rounded-xl bg-muted/60 p-3">
+            <p className="text-xs text-muted-foreground">Cuadros normales</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums">{inventory.standardFrames}</p>
+          </div>
+          <div className="rounded-xl bg-muted/60 p-3">
+            <p className="text-xs text-muted-foreground">Cuadros media alza</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums">{inventory.mediumFrames}</p>
+          </div>
+          <div className="rounded-xl bg-muted/60 p-3">
+            <p className="text-xs text-muted-foreground">Alzas</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums">{inventory.supers}</p>
+          </div>
         </div>
       </Card>
 
