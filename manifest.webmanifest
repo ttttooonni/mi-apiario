@@ -1,13 +1,14 @@
 {
-  "name": "mi-apiario",
-  "short_name": "mi-apiario",
+  "name": "Mi Apiario",
+  "short_name": "Mi Apiario",
   "id": "/mi-apiario/",
   "start_url": "/mi-apiario/",
   "scope": "/mi-apiario/",
   "display": "standalone",
-  "background_color": "#f3efe4",
-  "theme_color": "#f3efe4",
+  "background_color": "#F6F1E6",
+  "theme_color": "#244A35",
   "lang": "es",
+  "description": "Cuaderno de explotación apícola gratuito, local y sencillo.",
   "icons": [
     {
       "src": "/mi-apiario/icon-192.png",
@@ -22,9 +23,10 @@
       "purpose": "any"
     },
     {
-      "src": "/mi-apiario/__grok/icon-180.png",
-      "sizes": "180x180",
-      "type": "image/png"
+      "src": "/mi-apiario/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
