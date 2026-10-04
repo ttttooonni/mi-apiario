@@ -71,7 +71,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       <footer className="mx-auto w-full max-w-5xl px-4 pb-24 pt-3 text-center text-xs text-muted-foreground md:pl-[calc(15rem+2rem)] md:pr-8 md:pb-6">
         <span>Mi Apiario · gratuito para apicultores</span>
         <span className="mx-2">·</span>
-        <a className="underline underline-offset-2" href="mailto:ttttooonni.ia@gmail.com">Contacto</a>
+        <a className="underline underline-offset-2" href="mailto:ttttooonni.ia@gmail.com">Contacto por email</a>
+        <span className="mx-2">·</span>
+        <a
+          className="underline underline-offset-2"
+          href="https://wa.me/34639623598?text=Hola%2C%20te%20contacto%20por%20Mi%20Apiario."
+          target="_blank"
+          rel="noreferrer"
+        >
+          WhatsApp: 639 623 598
+        </a>
         <span className="mx-2">·</span>
         <a
           className="underline underline-offset-2"
