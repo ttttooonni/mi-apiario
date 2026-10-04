@@ -2,6 +2,7 @@ export * from "./backup";
 export * from "./commands";
 export * from "./dates";
 export * from "./health";
+export * from "./inventory";
 export * from "./hooks";
 export * from "./idb";
 export * from "./labels";
