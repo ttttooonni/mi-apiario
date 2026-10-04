@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Activity, Archive, ArrowRight, CalendarClock, CheckSquare, ClipboardList, Flower2, MapPin, Plus, ScanLine, ShieldCheck, Warehouse } from "lucide-react";
 import { ApiaryFormDialog } from "@/components/apiary/apiary-form";
 import { EmptyState } from "@/components/apiary/empty-state";
 import { InstallAppButton } from "@/components/apiary/install-app";
-import { StatCard } from "@/components/apiary/stat-card";
 import { useTutorial } from "@/components/apiary/tutorial";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -44,12 +44,13 @@ function Home() {
   const treated = varroaTreatedIds(data, year);
   const pendingVarroa = coloniesMissingVarroa(data, year);
   const pendingTasks = (data.tasks ?? []).filter((task) => !task.completedAt).sort((a, b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999"));
+  const overdueTasks = pendingTasks.filter((task) => task.dueDate && task.dueDate < new Date().toISOString().slice(0, 10));
 
   return (
-    <div>
-      <p className="text-xs font-medium tracking-[0.16em] text-muted-foreground uppercase">Temporada {year}</p>
+    <div className="pb-3">
+      <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">Temporada {year}</p>
       <h1 className="mt-1 font-display text-3xl font-medium tracking-tight">Inicio</h1>
-      <p className="mt-1 mb-6 max-w-xl text-sm text-muted-foreground">Cuaderno de explotación. Lo importante, a mano.</p>
+      <p className="mt-1 mb-5 max-w-xl text-sm text-muted-foreground">Tu apiario, las tareas y los registros importantes.</p>
 
       {empty ? (
         <EmptyState
@@ -59,55 +60,80 @@ function Home() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <StatCard label="Apiarios" value={data.apiaries.length} />
-            <StatCard label="Colmenas" value={hiveCount(data)} />
-            <StatCard label="Núcleos" value={nucCount(data)} />
-            <StatCard label={`Miel ${year}`} value={formatKg(honeyThisYear(data))} />
+          <Card className="p-2.5 sm:p-3">
+            <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
+              <Link to="/apiarios" className="group flex min-h-20 items-center gap-3 rounded-xl p-3 transition-colors hover:bg-secondary/60 focus-visible:outline-2 focus-visible:outline-primary">
+                <MapPin className="size-5 shrink-0 text-primary" aria-hidden="true" />
+                <div className="min-w-0"><p className="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">Apiarios</p><p className="font-display text-2xl leading-tight tabular-nums">{data.apiaries.length}</p></div><ArrowRight className="ml-auto size-4 shrink-0 text-muted-foreground opacity-70" />
+              </Link>
+              <Link to="/apiarios" className="group flex min-h-20 items-center gap-3 rounded-xl p-3 transition-colors hover:bg-secondary/60 focus-visible:outline-2 focus-visible:outline-primary">
+                <Warehouse className="size-5 shrink-0 text-honey" aria-hidden="true" />
+                <div className="min-w-0"><p className="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">Colmenas</p><p className="font-display text-2xl leading-tight tabular-nums">{hiveCount(data)}</p></div><ArrowRight className="ml-auto size-4 shrink-0 text-muted-foreground opacity-70" />
+              </Link>
+              <Link to="/apiarios" className="group flex min-h-20 items-center gap-3 rounded-xl p-3 transition-colors hover:bg-secondary/60 focus-visible:outline-2 focus-visible:outline-primary">
+                <Flower2 className="size-5 shrink-0 text-primary" aria-hidden="true" />
+                <div className="min-w-0"><p className="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">Núcleos</p><p className="font-display text-2xl leading-tight tabular-nums">{nucCount(data)}</p></div><ArrowRight className="ml-auto size-4 shrink-0 text-muted-foreground opacity-70" />
+              </Link>
+              <Link to="/produccion" className="group flex min-h-20 items-center gap-3 rounded-xl p-3 transition-colors hover:bg-secondary/60 focus-visible:outline-2 focus-visible:outline-primary">
+                <span className="text-xl leading-none" aria-hidden="true">🍯</span>
+                <div className="min-w-0"><p className="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">Miel {year}</p><p className="font-display text-2xl leading-tight tabular-nums">{formatKg(honeyThisYear(data))}</p></div><ArrowRight className="ml-auto size-4 shrink-0 text-muted-foreground opacity-70" />
+              </Link>
+            </div>
+          </Card>
+
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <Link to="/apiarios" className="flex min-h-20 flex-col justify-center gap-2 rounded-2xl bg-primary px-3 py-3 text-primary-foreground shadow-sm transition-transform active:scale-[0.98]">
+              <span className="flex items-center gap-1.5 text-sm font-semibold"><Plus className="size-4" /> Nueva revisión</span><span className="text-xs opacity-85">Abrir colonias</span>
+            </Link>
+            <Link to="/apiarios" className="flex min-h-20 flex-col justify-center gap-2 rounded-2xl border bg-card px-3 py-3 transition-colors hover:bg-secondary/50">
+              <span className="flex items-center gap-1.5 text-sm font-semibold"><ClipboardList className="size-4 text-primary" /> Colmenas</span><span className="text-xs text-muted-foreground">Ver fichas</span>
+            </Link>
+            <Link to="/sanidad" className="flex min-h-20 flex-col justify-center gap-2 rounded-2xl border bg-card px-3 py-3 transition-colors hover:bg-secondary/50">
+              <span className="flex items-center gap-1.5 text-sm font-semibold"><ScanLine className="size-4 text-primary" /> Sanidad</span><span className="text-xs text-muted-foreground">Tratamientos</span>
+            </Link>
           </div>
 
-
-          <Card className="mt-5 p-4 sm:p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div><h2 className="font-display text-xl font-medium">Tareas pendientes</h2><p className="mt-1 text-sm text-muted-foreground">Lo próximo que tienes que revisar en el apiario.</p></div>
+          <Card className="mt-4 overflow-hidden p-0">
+            <div className="flex items-center justify-between gap-3 px-4 pt-4 pb-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <CheckSquare className="size-5 shrink-0 text-primary" />
+                <div><h2 className="font-display text-xl font-medium">Tareas pendientes</h2><p className="text-xs text-muted-foreground">{overdueTasks.length ? `${overdueTasks.length} vencida${overdueTasks.length === 1 ? "" : "s"} · ` : ""}{pendingTasks.length} por completar</p></div>
+              </div>
               <span className="rounded-full bg-secondary px-3 py-1 text-sm font-semibold tabular-nums">{pendingTasks.length}</span>
             </div>
-            {pendingTasks.length ? <div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm">
-              <thead><tr className="border-b text-xs tracking-wide text-muted-foreground uppercase"><th className="py-2 pr-3 font-medium">Tarea</th><th className="py-2 pr-3 font-medium">Colonia</th><th className="py-2 pr-3 font-medium">Fecha</th><th className="py-2 font-medium">Prioridad</th></tr></thead>
-              <tbody>{pendingTasks.slice(0, 8).map((task) => { const colony = data.colonies.find((item) => item.id === task.colonyId); const apiary = colony ? data.apiaries.find((item) => item.id === colony.apiaryId) : undefined; return <tr key={task.id} className="border-b last:border-0"><td className="py-3 pr-3 font-medium"><Link to="/colonias/$colonyId" params={{ colonyId: task.colonyId }} className="hover:text-primary hover:underline">{task.title}</Link>{task.notes ? <p className="mt-0.5 max-w-48 truncate text-xs font-normal text-muted-foreground">{task.notes}</p> : null}</td><td className="py-3 pr-3"><Link to="/colonias/$colonyId" params={{ colonyId: task.colonyId }} className="text-muted-foreground hover:text-primary">{colony ? COLONY_KIND_LABEL[colony.kind] + " " + colony.number : "Colonia"}{apiary ? " · " + apiary.name : ""}</Link></td><td className="py-3 pr-3 whitespace-nowrap text-muted-foreground">{task.dueDate ? new Date(task.dueDate + "T12:00:00").toLocaleDateString("es-ES") : "—"}</td><td className="py-3"><span className={"rounded-full px-2 py-1 text-xs " + (task.priority === "high" ? "bg-amber-100 text-amber-900" : "bg-secondary text-secondary-foreground")}>{task.priority === "high" ? "Alta" : task.priority === "low" ? "Baja" : "Normal"}</span></td></tr>; })}</tbody>
-            </table>{pendingTasks.length > 8 ? <p className="pt-2 text-xs text-muted-foreground">Mostrando 8 de {pendingTasks.length} tareas. Entra en una colonia para gestionar su lista.</p> : null}</div> : <p className="mt-3 rounded-xl bg-secondary/50 p-3 text-sm text-muted-foreground">No tienes tareas pendientes. Puedes añadirlas desde la ficha de cada colmena o núcleo.</p>}
-          </Card>
-
-          <Card className="mt-5 border-primary/20 bg-card p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3">
+            {pendingTasks.length ? (
               <div>
-                <p className="text-xs font-semibold tracking-[0.14em] text-primary uppercase">Temporada sanitaria</p>
-                <h2 className="mt-1 font-display text-2xl font-semibold">Sanidad {year}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Seguimiento de varroa de todas tus colonias.</p>
+                {pendingTasks.slice(0, 5).map((task) => {
+                  const colony = data.colonies.find((item) => item.id === task.colonyId);
+                  const apiary = colony ? data.apiaries.find((item) => item.id === colony.apiaryId) : undefined;
+                  const overdue = Boolean(task.dueDate && task.dueDate < new Date().toISOString().slice(0, 10));
+                  return <Link key={task.id} to="/colonias/$colonyId" params={{ colonyId: task.colonyId }} className="flex items-center gap-3 border-t px-4 py-3 transition-colors hover:bg-secondary/40 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-primary">
+                    <span className={"flex size-11 shrink-0 flex-col items-center justify-center rounded-xl text-xs font-semibold leading-tight " + (overdue ? "bg-red-100 text-red-800" : task.priority === "high" ? "bg-amber-100 text-amber-900" : "bg-secondary text-secondary-foreground")}>{task.dueDate ? new Date(task.dueDate + "T12:00:00").toLocaleDateString("es-ES", { day: "2-digit", month: "short" }).replace(".", "") : "—"}</span>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{task.title}</span><span className="mt-0.5 block truncate text-xs text-muted-foreground">{colony ? COLONY_KIND_LABEL[colony.kind] + " " + colony.number : "Colonia"}{apiary ? " · " + apiary.name : ""}</span></span>
+                    <span className={"shrink-0 rounded-full px-2 py-1 text-[11px] font-medium " + (overdue ? "bg-red-100 text-red-800" : task.priority === "high" ? "bg-amber-100 text-amber-900" : "bg-secondary text-secondary-foreground")}>{overdue ? "Vencida" : task.priority === "high" ? "Alta" : "Pendiente"}</span>
+                    <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+                  </Link>;
+                })}
+                {pendingTasks.length > 5 ? <p className="border-t px-4 py-3 text-xs text-muted-foreground">Mostrando 5 de {pendingTasks.length}. Abre una colonia para ver sus tareas.</p> : null}
               </div>
-              <Button asChild variant="outline" className="min-h-11"><Link to="/sanidad">Abrir sanidad</Link></Button>
-            </div>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-secondary/70 p-4">
-                <p className="text-sm text-muted-foreground">Con tratamiento</p>
-                <p className="mt-1 font-display text-3xl font-semibold tabular-nums">{treated.size}<span className="text-lg font-normal text-muted-foreground"> / {data.colonies.length}</span></p>
-                <p className="mt-1 text-xs text-muted-foreground">Colonias registradas</p>
-              </div>
-              <div className="rounded-xl border border-amber-700/20 bg-amber-50/60 p-4 dark:bg-amber-950/20">
-                <p className="text-sm text-muted-foreground">Pendientes</p>
-                <p className="mt-1 font-display text-3xl font-semibold tabular-nums">{pendingVarroa.length}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Sin tratamiento registrado este año</p>
-              </div>
-            </div>
-            {pendingVarroa.length > 0 && <p className="mt-3 text-sm text-muted-foreground">Pendientes: {pendingVarroa.slice(0, 4).map((item) => item.number).join(", ")}{pendingVarroa.length > 4 ? "…" : ""}</p>}
-            <div className="mt-4 border-t pt-3"><Link to="/sanidad" className="text-sm font-medium text-primary hover:underline">Consultar esta temporada y años anteriores →</Link></div>
+            ) : <p className="border-t px-4 py-4 text-sm text-muted-foreground">No tienes tareas pendientes. Puedes añadirlas desde la ficha de cada colmena o núcleo.</p>}
           </Card>
 
-          <Card className="mt-4 p-5">
-            <div className="flex items-baseline justify-between gap-3"><h2 className="font-display text-lg font-medium">Producción {year}</h2><Link to="/produccion" className="text-sm text-primary hover:underline">Ver producción</Link></div>
-            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-5">{PRODUCT_ORDER.map((product) => <div key={product}><dt className="text-xs tracking-wide text-muted-foreground uppercase">{PRODUCT_LABEL[product]}</dt><dd className="mt-0.5 font-medium tabular-nums">{products[product] > 0 ? formatKg(products[product]) : "—"}</dd></div>)}</dl>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Link to="/sanidad" className="rounded-2xl border border-primary/15 bg-primary/5 p-4 transition-colors hover:bg-primary/10">
+              <div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 size-6 shrink-0 text-primary" /><div className="min-w-0 flex-1"><p className="text-xs font-semibold tracking-wide text-primary uppercase">Temporada sanitaria</p><h2 className="mt-1 font-display text-xl font-semibold">Sanidad {year}</h2><p className="mt-1 text-sm text-muted-foreground">{treated.size} de {data.colonies.length} colonias con tratamiento registrado</p><div className="mt-3 flex items-center justify-between text-sm"><span className="font-medium">{pendingVarroa.length} pendientes</span><ArrowRight className="size-4" /></div></div></div>
+            </Link>
+            <Link to="/produccion" className="rounded-2xl border border-amber-700/15 bg-amber-50/70 p-4 transition-colors hover:bg-amber-50">
+              <div className="flex items-start gap-3"><Activity className="mt-0.5 size-6 shrink-0 text-honey" /><div className="min-w-0 flex-1"><p className="text-xs font-semibold tracking-wide text-honey uppercase">Producción anual</p><h2 className="mt-1 font-display text-xl font-semibold">Miel {year}</h2><p className="mt-1 text-sm text-muted-foreground">{formatKg(honeyThisYear(data))} registrados</p><div className="mt-3 flex items-center justify-between text-sm"><span className="font-medium">Ver producción</span><ArrowRight className="size-4" /></div></div></div>
+            </Link>
+          </div>
+
+          <Card className="mt-4 p-4">
+            <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-2"><CalendarClock className="size-5 text-muted-foreground" /><div><h2 className="font-display text-lg font-medium">Resumen de producción</h2><p className="text-xs text-muted-foreground">Registros de {year}</p></div></div><Link to="/produccion" className="text-sm font-semibold text-primary">Ver todo →</Link></div>
+            <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-5">{PRODUCT_ORDER.map((product) => <div key={product}><dt className="text-xs text-muted-foreground">{PRODUCT_LABEL[product]}</dt><dd className="mt-0.5 font-semibold tabular-nums">{products[product] > 0 ? formatKg(products[product]) : "—"}</dd></div>)}</dl>
           </Card>
-          <div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => setCreateOpen(true)}>Nuevo apiario</Button><Button variant="outline" asChild><Link to="/apiarios">Ver apiarios</Link></Button><InstallAppButton variant="outline" label="Descargar aplicación" /></div>
+
+          <div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => setCreateOpen(true)}>Nuevo apiario</Button><Button variant="outline" asChild><Link to="/apiarios">Ver apiarios</Link></Button><Button variant="outline" asChild><Link to="/historico"><Archive className="mr-2 size-4" />Histórico</Link></Button><InstallAppButton variant="outline" label="Instalar aplicación" /></div>
         </>
       )}
       <ApiaryFormDialog open={createOpen} onOpenChange={setCreateOpen} onSubmit={async (values) => { await saveApiary.mutateAsync({ id: newId(), ...values, createdAt: nowIso(), updatedAt: nowIso() }); toast.success("Apiario creado"); }} />
