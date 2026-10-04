@@ -28,13 +28,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-card md:flex">
-        <div className="flex items-center gap-2.5 px-5 pt-6 pb-5">
+        <Link to="/" aria-label="Ir al inicio de Mi Apiario" className="flex items-center gap-2.5 rounded-lg px-5 pt-6 pb-5 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
           <HiveMark className="size-10" />
           <div>
             <p className="font-display text-lg leading-none tracking-tight">mi-apiario</p>
             <p className="mt-1 text-xs text-muted-foreground">Cuaderno de explotación</p>
           </div>
-        </div>
+        </Link>
         <nav className="flex flex-1 flex-col gap-0.5 px-3">
           {NAV.map((item) => (
             <NavLink
@@ -56,8 +56,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <header className="sticky top-0 z-30 flex h-14 items-center gap-1 border-b border-border bg-background/95 px-3 backdrop-blur-sm md:hidden">
-        <HiveMark className="size-8" />
-        <p className="font-display flex-1 text-base tracking-tight">mi-apiario</p>
+        <Link to="/" aria-label="Ir al inicio de Mi Apiario" className="flex min-w-0 flex-1 items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+          <HiveMark className="size-8" />
+          <p className="font-display truncate text-base tracking-tight">mi-apiario</p>
+        </Link>
         <Button type="button" variant="ghost" size="icon" aria-label="Guía" onClick={show}>
           <CircleHelp />
         </Button>
