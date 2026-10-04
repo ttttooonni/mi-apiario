@@ -6,7 +6,7 @@ import { Providers } from "@/components/layout/providers";
 import { publicUrl } from "@/lib/asset";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "mi-apiario";
+const APP_NAME = "Mi Apiario";
 
 function publicAppHost(value: unknown): string {
   const host = String(value ?? "")
@@ -39,7 +39,7 @@ export const Route = createRootRoute({
         { name: "theme-color", content: "#f3efe4" },
         {
           name: "description",
-          content: "Cuaderno de explotación apícola. Local, sencillo y profesional.",
+          content: "Cuaderno apícola gratuito en fase de evaluación. Ayúdanos a detectar errores y mejorar Mi Apiario antes de su versión definitiva.",
         },
         ...(xBanner ? [{ property: "x:game:image", content: xBanner }] : []),
       ],
@@ -47,8 +47,8 @@ export const Route = createRootRoute({
         { rel: "icon", type: "image/png", sizes: "32x32", href: publicUrl("favicon-32.png") },
         { rel: "icon", type: "image/svg+xml", href: publicUrl("favicon.svg") },
         { rel: "stylesheet", href: appCss },
-        { rel: "manifest", href: publicUrl("__grok/manifest.webmanifest") },
-        { rel: "apple-touch-icon", href: publicUrl("__grok/icon-180.png") },
+        { rel: "manifest", href: publicUrl("manifest.webmanifest") },
+        { rel: "apple-touch-icon", href: publicUrl("icon-192.png") },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
         {
@@ -69,6 +69,9 @@ function RootDocument() {
       </head>
       <body>
         <PreviewHostBridge />
+        <div className="border-b border-amber-300/70 bg-amber-50 px-4 py-2 text-center text-sm text-amber-950">
+          <strong>Versión de evaluación:</strong> estamos probando Mi Apiario para detectar y corregir errores antes de publicar la V1 definitiva. Revisa tus datos y conserva una copia de seguridad.
+        </div>
         <AuthProvider>
           <Providers>
             <AppShell>
