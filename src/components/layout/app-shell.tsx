@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Archive, CircleHelp, Hexagon, History, Home, Scale, Shield } from "lucide-react";
+import { Archive, CircleHelp, Hexagon, History, Home, Scale, Shield, Share2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { InstallAppButton } from "@/components/apiary/install-app";
 import { useTutorial } from "@/components/apiary/tutorial";
@@ -68,28 +68,18 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      <footer className="mx-auto w-full max-w-5xl px-4 pb-24 pt-3 text-center text-xs text-muted-foreground md:pl-[calc(15rem+2rem)] md:pr-8 md:pb-6">
-        <span>Mi Apiario · gratuito para apicultores</span>
-        <span className="mx-2">·</span>
-        <a className="underline underline-offset-2" href="mailto:ttttooonni.ia@gmail.com">Contacto por email</a>
-        <span className="mx-2">·</span>
-        <a
-          className="underline underline-offset-2"
-          href="https://wa.me/34639623598?text=Hola%2C%20te%20contacto%20por%20Mi%20Apiario."
-          target="_blank"
-          rel="noreferrer"
-        >
-          WhatsApp: 639 623 598
-        </a>
-        <span className="mx-2">·</span>
-        <a
-          className="underline underline-offset-2"
-          href="https://wa.me/?text=Descubre%20Mi%20Apiario%2C%20una%20app%20gratuita%20para%20apicultores%3A%20https%3A%2F%2Fttttooonni.github.io%2Fmi-apiario%2F"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Compartir por WhatsApp
-        </a>
+      <footer className="mx-auto w-full max-w-5xl px-4 pb-24 pt-6 md:pl-[calc(15rem+2rem)] md:pr-8 md:pb-8">
+        <section className="rounded-2xl border border-emerald-800/20 bg-emerald-50/70 p-5 text-center shadow-sm dark:bg-emerald-950/20 sm:p-6">
+          <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-emerald-800/10 text-emerald-800 dark:text-emerald-200"><Share2 className="size-6" /></div>
+          <h2 className="font-display text-xl font-semibold">Comparte Mi Apiario</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">¿Conoces a otros apicultores? Comparte esta aplicación gratuita y ayúdanos a llegar a más personas.</p>
+          <Button asChild className="mt-4 min-h-12 w-full text-base sm:w-auto"><a href="https://wa.me/?text=Descubre%20Mi%20Apiario%2C%20una%20app%20gratuita%20para%20apicultores%3A%20https%3A%2F%2Fttttooonni.github.io%2Fmi-apiario%2F" target="_blank" rel="noreferrer"><Share2 className="mr-2 size-5" />Compartir por WhatsApp</a></Button>
+        </section>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-center text-xs text-muted-foreground">
+          <span>Mi Apiario · gratuito para apicultores</span><span aria-hidden="true">·</span>
+          <a className="underline underline-offset-2" href="mailto:ttttooonni.ia@gmail.com">Contacto por email</a><span aria-hidden="true">·</span>
+          <a className="underline underline-offset-2" href="https://wa.me/34639623598?text=Hola%2C%20te%20contacto%20por%20Mi%20Apiario." target="_blank" rel="noreferrer">WhatsApp: 639 623 598</a>
+        </div>
       </footer>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] md:hidden">
