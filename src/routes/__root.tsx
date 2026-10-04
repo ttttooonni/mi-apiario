@@ -39,7 +39,7 @@ export const Route = createRootRoute({
         { name: "theme-color", content: "#f3efe4" },
         {
           name: "description",
-          content: "Cuaderno apícola gratuito en fase de evaluación. Ayúdanos a detectar errores y mejorar Mi Apiario antes de su versión definitiva.",
+          content: "Cuaderno apícola gratuito para gestionar apiarios, colmenas, sanidad e historial. Ayúdanos a mejorar Mi Apiario.",
         },
         ...(xBanner ? [{ property: "x:game:image", content: xBanner }] : []),
       ],
@@ -69,9 +69,6 @@ function RootDocument() {
       </head>
       <body>
         <PreviewHostBridge />
-        <div className="border-b border-amber-300/70 bg-amber-50 px-4 py-2 text-center text-sm text-amber-950">
-          <strong>Versión de evaluación:</strong> estamos mejorando Mi Apiario antes de publicar la V1. Haz una copia de seguridad de tus datos.
-        </div>
         <AuthProvider>
           <Providers>
             <AppShell>
