@@ -1,23 +1,34 @@
 # 🐝 Mi Apiario
 
-Aplicación gratuita para apicultores: gestión de apiarios, colonias, sanidad, producción e histórico.
+**Tu cuaderno apícola digital, sencillo y práctico.**  
+Organiza la información de tus apiarios desde el móvil o el ordenador, con una herramienta pensada para acompañarte en el trabajo diario.
 
-- **Aplicación:** https://ttttooonni.github.io/mi-apiario/
-- **Repositorio:** https://github.com/ttttooonni/mi-apiario
-- **Contacto:** ttttooonni.ia@gmail.com
+🌿 **Mi Apiario es gratuito y está en fase de evaluación.** Esta versión se comparte para probar sus funciones en situaciones reales, detectar fallos y recoger sugerencias. El objetivo es corregir los errores encontrados antes de presentar la **versión 1 definitiva**. Gracias por ayudar a mejorarla.
 
-## Privacidad y datos
+- **Probar la aplicación:** https://ttttooonni.github.io/mi-apiario/
+- **Compartir con otros apicultores:** puedes enviar el enlace por WhatsApp.
+- **Contacto y sugerencias:** ttttooonni.ia@gmail.com
+- **Código del proyecto:** https://github.com/ttttooonni/mi-apiario
 
-La aplicación está pensada para guardar los registros localmente en el dispositivo. No introduzcas información sensible en equipos compartidos. Haz copias de seguridad periódicas y guárdalas en un lugar seguro. Los datos del navegador de la aplicación original no se trasladan automáticamente a este nuevo dominio.
+## Qué puedes gestionar
 
-## Instalar y compartir
+Mi Apiario está diseñada para ayudarte a organizar los datos de tus apiarios, colonias, sanidad, producción e histórico en un solo lugar. La aplicación seguirá evolucionando a partir de las pruebas y de los comentarios recibidos.
 
-Abre la aplicación desde el enlace anterior en el móvil y, si el navegador lo permite, añádela a la pantalla de inicio. Puedes compartir el enlace público con otros apicultores por WhatsApp; no compartas copias de seguridad que contengan datos privados.
+## Importante: versión de evaluación
 
-## PWA e identidad visual
+La aplicación todavía está en revisión. Algunas funciones pueden contener errores o no comportarse como esperas. Comprueba los datos después de guardarlos y comunica cualquier problema o mejora que detectes. No la uses como único registro de información importante mientras dure la evaluación.
 
-La PWA usa un manifiesto estático propio (`manifest.webmanifest`) y los iconos públicos de Mi Apiario. La identidad visual emplea fondo crema, verde bosque y dorado miel. El build de GitHub Pages genera el manifiesto con las rutas correctas bajo `/mi-apiario/`, sin depender de rutas internas de herramientas externas.
+## Tus datos y privacidad
 
-## Publicación
+Los registros se guardan localmente en el dispositivo o navegador que utilizas; no se trasladan automáticamente a otro móvil u ordenador. Haz copias de seguridad con regularidad y guárdalas en un lugar seguro. Evita introducir información sensible en dispositivos compartidos y no envíes copias de seguridad con datos privados por WhatsApp.
 
-Los cambios en la rama `main` construyen y publican la aplicación mediante GitHub Actions. El sitio utiliza la base `/mi-apiario/`. La información de apicultura se mantiene local en el dispositivo; exporta una copia de seguridad antes de cambiar de dispositivo o borrar datos del navegador.
+## Cómo empezar
+
+1. Abre la aplicación desde el enlace.
+2. Si quieres, añádela a la pantalla de inicio del móvil para acceder como a una app.
+3. Prueba las funciones con cuidado y revisa que la información se guarde correctamente.
+4. Cuéntanos qué falla, qué resulta confuso o qué te gustaría mejorar.
+
+**Mi Apiario — una herramienta en construcción, hecha para facilitar el trabajo de los apicultores.**
+
+*Producto de ttttooonni · Contacto: ttttooonni.ia@gmail.com*
