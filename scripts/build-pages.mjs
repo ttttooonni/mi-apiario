@@ -80,8 +80,47 @@ function rewriteRootUrls(html) {
 
 const indexPath = join(dest, "index.html");
 const rewritten = rewriteRootUrls(readFileSync(indexPath, "utf8"));
-writeFileSync(indexPath, rewritten);
-writeFileSync(join(dest, "404.html"), rewritten);
+
+// Keep the HTML shell revalidatable and let already-open pages detect a new
+// asset manifest. GitHub Pages does not support custom Cache-Control headers,
+// so the client compares the current asset hashes with a fresh no-store fetch.
+const updateGuard = [
+  '<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">',
+  '<script id="mi-apiario-update-check">',
+  '(() => {',
+  '  const base = ' + JSON.stringify(startUrl) + ';',
+  '  const assets = (html) => [...new Set((html.match(/\\/assets\\/[^"\\s<>?#]+/g) || []).filter((x) => /\\.(?:js|css)$/.test(x)))].sort().join("|");',
+  '  const currentAssets = assets(document.documentElement.outerHTML);',
+  '  let shown = false;',
+  '  const check = async () => {',
+  '    try {',
+  '      const response = await fetch(base + "index.html?check=" + Date.now(), { cache: "no-store", credentials: "same-origin" });',
+  '      if (!response.ok) return;',
+  '      const latestAssets = assets(await response.text());',
+  '      if (!latestAssets || latestAssets === currentAssets || shown) return;',
+  '      shown = true;',
+  '      const notice = document.createElement("div");',
+  '      notice.setAttribute("role", "status");',
+  '      notice.style.cssText = "position:fixed;z-index:2147483647;left:12px;right:12px;bottom:12px;padding:14px 16px;border:1px solid #d9cba8;border-radius:14px;background:#fffdf6;color:#29261f;box-shadow:0 8px 32px #0003;font:500 14px/1.4 system-ui,sans-serif;display:flex;align-items:center;justify-content:space-between;gap:12px";',
+  '      const text = document.createElement("span");',
+  '      text.textContent = "Hay una nueva versión de Mi Apiario disponible.";',
+  '      const button = document.createElement("button");',
+  '      button.type = "button";',
+  '      button.textContent = "Actualizar";',
+  '      button.style.cssText = "flex-shrink:0;border:0;border-radius:9px;padding:10px 14px;background:#365c36;color:white;font:600 14px system-ui,sans-serif";',
+  '      button.addEventListener("click", () => { location.replace(location.pathname + "?actualizacion=" + Date.now() + location.hash); });',
+  '      notice.append(text, button);',
+  '      document.body.appendChild(notice);',
+  '    } catch { /* Sin conexión: se mantiene la versión actual disponible. */ }',
+  '  };',
+  '  check();',
+  '  window.setInterval(check, 120000);',
+  '})();',
+  '</script>',
+].join("\\n");
+const guarded = rewritten.replace("</head>", updateGuard + "</head>");
+writeFileSync(indexPath, guarded);
+writeFileSync(join(dest, "404.html"), guarded);
 writeFileSync(join(dest, ".nojekyll"), "");
 
 const manifest = {
