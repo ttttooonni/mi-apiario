@@ -33,12 +33,14 @@ export interface ProductionRecord {
   id: string; product: ProductKind; date: string; quantity: number; lot: string; notes?: string; createdAt: string;
 }
 export interface YearClose { year: number; hives: number; nucs: number; closedAt: string; notes?: string; }
+export type TaskPriority = "high" | "normal" | "low";
+export interface ColonyTask { id: string; colonyId: string; title: string; dueDate?: string; priority: TaskPriority; notes?: string; completedAt?: string; createdAt: string; }
 export interface AppState {
   apiaries: Apiary[]; colonies: Colony[]; queens: Queen[]; actions: ColonyAction[];
-  health: HealthRecord[]; production: ProductionRecord[]; yearCloses: YearClose[];
+  health: HealthRecord[]; production: ProductionRecord[]; yearCloses: YearClose[]; tasks: ColonyTask[];
 }
 export const EMPTY_STATE: AppState = {
-  apiaries: [], colonies: [], queens: [], actions: [], health: [], production: [], yearCloses: [],
+  apiaries: [], colonies: [], queens: [], actions: [], health: [], production: [], yearCloses: [], tasks: [],
 };
 export const DATA_VERSION = 1;
 export const APP_ID = "mi-apiario";
