@@ -70,7 +70,7 @@ function RootDocument() {
       <body>
         <PreviewHostBridge />
         <div className="border-b border-amber-300/70 bg-amber-50 px-4 py-2 text-center text-sm text-amber-950">
-          <strong>Versión de evaluación:</strong> estamos probando Mi Apiario para detectar y corregir errores antes de publicar la V1 definitiva. Revisa tus datos y conserva una copia de seguridad.
+          <strong>Versión de evaluación:</strong> estamos mejorando Mi Apiario antes de publicar la V1. Haz una copia de seguridad de tus datos.
         </div>
         <AuthProvider>
           <Providers>
