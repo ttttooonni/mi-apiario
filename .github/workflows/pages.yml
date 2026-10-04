@@ -49,7 +49,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A -- index.html 404.html .nojekyll assets __grok \
+          git add -A -- index.html 404.html .nojekyll assets \
             favicon-32.png favicon.svg icon-192.png icon-512.png \
             logo.png manifest.webmanifest og.jpg x-banner.jpg
           git rm -f --ignore-unmatch mi-apiario.zip public/mi-apiario.zip || true
