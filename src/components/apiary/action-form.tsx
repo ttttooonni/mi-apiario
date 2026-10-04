@@ -35,6 +35,7 @@ import {
 import { QueenSwatch } from "./queen-swatch";
 
 const QUEEN_ORIGINS = ["Comprada", "Criadero", "Cabildo", "Asociación", "Propia", "Otro"] as const;
+const QUEEN_RETIRE_REASONS = ["Vieja", "Postura irregular", "Sin puesta", "Reina zanganera", "Colonia sin reina", "Reina dañada", "Baja productividad", "Agresividad", "Reemplazo preventivo", "Otro"] as const;
 
 export function ActionFormDialog({
   open,
@@ -63,6 +64,7 @@ export function ActionFormDialog({
   const [queenOrigin, setQueenOrigin] = useState<string>("");
   const [customQueenOrigin, setCustomQueenOrigin] = useState("");
   const [queenRetireReason, setQueenRetireReason] = useState("");
+  const [customQueenRetireReason, setCustomQueenRetireReason] = useState("");
   const [busy, setBusy] = useState(false);
 
   const colony = state.colonies.find((item) => item.id === colonyId);
@@ -84,6 +86,7 @@ export function ActionFormDialog({
     setQueenOrigin("");
     setCustomQueenOrigin("");
     setQueenRetireReason("");
+    setCustomQueenRetireReason("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, presetType, colonyId]);
 
@@ -91,17 +94,19 @@ export function ActionFormDialog({
   const needsSuper = type === "add_super" || type === "remove_super";
   const notesRequired = type === "note";
   const resolvedQueenOrigin = queenOrigin === "Otro" ? customQueenOrigin.trim() : queenOrigin;
+  const resolvedQueenRetireReason = queenRetireReason === "Otro" ? customQueenRetireReason.trim() : queenRetireReason;
   const canSubmit = useMemo(() => {
     if (!date) return false;
     if (needsFrames && (!framesQty || Number(framesQty) < 1)) return false;
     if (needsSuper && (!supersQty || Number(supersQty) < 1)) return false;
     if (type === "treatment" && !treatmentProduct.trim()) return false;
     if (type === "move" && !moveToApiaryId) return false;
-    if (type === "change_queen" && queen && !queenRetireReason.trim()) return false;
+    if (type === "change_queen" && queen && !resolvedQueenRetireReason.trim()) return false;
     if (type === "change_queen" && queenOrigin === "Otro" && !customQueenOrigin.trim()) return false;
+    if (type === "change_queen" && queen && queenRetireReason === "Otro" && !customQueenRetireReason.trim()) return false;
     if (notesRequired && !notes.trim()) return false;
     return true;
-  }, [date, needsFrames, framesQty, needsSuper, supersQty, type, treatmentProduct, moveToApiaryId, queen, queenRetireReason, queenOrigin, customQueenOrigin, notesRequired, notes]);
+  }, [date, needsFrames, framesQty, needsSuper, supersQty, type, treatmentProduct, moveToApiaryId, queen, queenRetireReason, customQueenRetireReason, resolvedQueenRetireReason, queenOrigin, customQueenOrigin, notesRequired, notes]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -127,7 +132,7 @@ export function ActionFormDialog({
       if (type === "change_queen") {
         action.queenIntroducedAt = date;
         action.queenOrigin = resolvedQueenOrigin.trim() || undefined;
-        action.queenRetireReason = queenRetireReason.trim() || undefined;
+        action.queenRetireReason = resolvedQueenRetireReason.trim() || undefined;
       }
       await onSubmit(action);
       onOpenChange(false);
@@ -172,7 +177,15 @@ export function ActionFormDialog({
           {type === "change_queen" ? <div className="grid gap-3 rounded-xl bg-muted/60 p-3">
             <p className="text-sm text-muted-foreground">El color se calcula solo a partir del año de introducción.</p>
             <div className="flex items-center gap-2 text-sm"><QueenSwatch date={date} /><span>Color {date.slice(0, 4)} · {queenColor.label}</span></div>
-            {queen ? <Field label="Motivo del cambio" htmlFor="queen-reason"><Input id="queen-reason" value={queenRetireReason} onChange={(event) => setQueenRetireReason(event.target.value)} placeholder="Reina vieja, postura irregular…" required /></Field> : null}
+            {queen ? <>
+              <Field label="Motivo del cambio">
+                <Select value={queenRetireReason} onValueChange={setQueenRetireReason}>
+                  <SelectTrigger><SelectValue placeholder="Selecciona el motivo" /></SelectTrigger>
+                  <SelectContent>{QUEEN_RETIRE_REASONS.map((reason) => <SelectItem key={reason} value={reason}>{reason}</SelectItem>)}</SelectContent>
+                </Select>
+              </Field>
+              {queenRetireReason === "Otro" ? <Field label="Especifica el motivo" htmlFor="queen-reason-other"><Input id="queen-reason-other" value={customQueenRetireReason} onChange={(event) => setCustomQueenRetireReason(event.target.value)} placeholder="Describe el motivo" required /></Field> : null}
+            </> : null}
             <Field label="Origen de la reina">
               <Select value={queenOrigin} onValueChange={setQueenOrigin}>
                 <SelectTrigger><SelectValue placeholder="Selecciona el origen" /></SelectTrigger>
