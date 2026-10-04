@@ -28,6 +28,18 @@ jobs:
         run: npm run typecheck
       - name: Ejecutar pruebas
         run: npm test
+      - name: Arrancar servidor de desarrollo para comprobar autenticación
+        run: |
+          npm run dev > /tmp/mi-apiario-vite.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:8080/__app-env > /tmp/mi-apiario-app-env.json; then
+              cat /tmp/mi-apiario-app-env.json
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/mi-apiario-vite.log
+          exit 1
       - name: Revisar invariantes de autenticación
         run: npm run check:auth
       - name: Construir versión estática para GitHub Pages
