@@ -67,7 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  function dismissUpdate() {
+  function updateApp() {\n    const url = `${window.location.pathname}?actualizacion=${Date.now()}${window.location.hash}`;\n    window.location.replace(url);\n  }\n\n  function dismissUpdate() {
     try {\n      window.localStorage.setItem("mi-apiario:app-version-seen", updateVersion);\n      window.localStorage.setItem("mi-apiario:app-build-seen", updateBuildId);\n    } catch { /* best effort */ }
     setUpdateVisible(false);
   }
@@ -122,7 +122,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <p className="mt-1 text-sm text-muted-foreground">Versión {updateVersion} disponible. Incluye mejoras y conserva tus datos locales.</p>
               <p className="mt-1 text-xs text-muted-foreground">Si no ves los cambios, recarga la aplicación.</p>
             </div>
-            <div className="flex shrink-0 gap-1"><Button type="button" variant="ghost" size="sm" onClick={dismissUpdate}>Después</Button><Button type="button" size="sm" onClick={() => window.location.reload()}>Actualizar</Button></div>
+            <div className="flex shrink-0 gap-1"><Button type="button" variant="ghost" size="sm" onClick={dismissUpdate}>Después</Button><Button type="button" size="sm" onClick={updateApp}>Actualizar</Button></div>
           </section>
         ) : null}
         {children}
