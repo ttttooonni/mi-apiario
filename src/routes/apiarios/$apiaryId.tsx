@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/apiary/empty-state";
 import { QueenSwatch } from "@/components/apiary/queen-swatch";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { ACTION_LABEL, coloniesOf, currentQueen, formatDate, lastAction, newId, nowIso, useAppMutations, useNotebook, type AppState, type Colony, type ColonyKind } from "@/lib/apiary";
+import { ACTION_LABEL, coloniesOf, currentQueen, formatDate, healthOfColony, lastAction, newId, nowIso, queenColorFromDate, QUEEN_COLOR_META, useAppMutations, useNotebook, type AppState, type Colony, type ColonyKind } from "@/lib/apiary";
 
 export const Route = createFileRoute("/apiarios/$apiaryId")({ component: ApiaryDetailPage });
 function ApiaryDetailPage() {
@@ -39,9 +39,24 @@ function ColonySection({ title, empty, actionLabel, colonies, onAdd, state }: { 
   </section>;
 }
 function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
-  const queen = currentQueen(state, colony.id); const action = lastAction(state, colony.id);
+  const queen = currentQueen(state, colony.id);
+  const action = lastAction(state, colony.id);
+  const latestHealth = healthOfColony(state, colony.id)[0];
+  const queenMeta = queen ? QUEEN_COLOR_META[queenColorFromDate(queen.introducedAt)] : undefined;
+  const quickInfo = [
+    queenMeta ? `Reina ${queenMeta.label.toLowerCase()}` : null,
+    latestHealth?.topic === "varroa" && latestHealth.varroaCount !== undefined
+      ? `Varroa ${latestHealth.varroaCount}`
+      : latestHealth?.topic === "inspection" && latestHealth.feedingNeeded
+        ? `Alimentación ${latestHealth.feedingForm === "paste" ? "pasta" : "líquida"}`
+        : latestHealth?.topic === "inspection" && latestHealth.colonyStrength
+          ? `Fuerza ${({ strong: "fuerte", medium: "media", weak: "débil" } as const)[latestHealth.colonyStrength]}`
+          : latestHealth?.topic === "inspection" && latestHealth.foodReserve
+            ? `Miel ${({ good: "buena", low: "escasa", very_low: "muy escasa" } as const)[latestHealth.foodReserve]}`
+            : null,
+  ].filter(Boolean).join(" · ");
   return <li><Link to="/colonias/$colonyId" params={{ colonyId: colony.id }} className="flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-border)] transition-colors hover:bg-secondary/60">
     {colony.photo ? <img src={colony.photo} alt={`Foto de ${colony.kind === "hive" ? "colmena" : "núcleo"} ${colony.number}`} className="size-20 shrink-0 rounded-xl object-cover" /> : <span className={`flex size-20 shrink-0 items-center justify-center rounded-xl text-2xl font-bold ${colony.kind === "hive" ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950"}`}>{colony.kind === "hive" ? "C" : "N"}</span>}
-    <div className="min-w-0 flex-1"><div className="mb-2 flex flex-wrap items-center gap-2"><span className="font-display text-2xl font-semibold leading-none tabular-nums">{colony.number}</span><ColonyKindBadge kind={colony.kind} />{queen && <QueenSwatch date={queen.introducedAt} />}</div><p className="text-sm leading-snug text-muted-foreground">{action ? `${ACTION_LABEL[action.type]} · ${formatDate(action.date)}` : "Sin acciones registradas"}</p></div>
+    <div className="min-w-0 flex-1"><div className="mb-2 flex flex-wrap items-center gap-2"><span className="font-display text-2xl font-semibold leading-none tabular-nums">{colony.number}</span><ColonyKindBadge kind={colony.kind} />{queen && <QueenSwatch date={queen.introducedAt} />}</div><p className="text-sm leading-snug text-muted-foreground">{action ? `${ACTION_LABEL[action.type]} · ${formatDate(action.date)}` : "Sin acciones registradas"}</p>{quickInfo ? <p className="mt-1 truncate text-xs text-muted-foreground">{quickInfo}</p> : null}</div>
   </Link></li>;
 }
