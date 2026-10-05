@@ -1,4 +1,5 @@
 import type { AppState, YearClose } from "./types";
+import { makePersistedState, migratePersistedState, PERSISTED_VERSION } from "./migration";
 
 const LS_KEY = "mi-apiario:v1";
 /** Typical browser localStorage ceiling is ~5 MB. Warn before we hit it. */
