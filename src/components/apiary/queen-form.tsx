@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { queenColorFromDate, QUEEN_COLOR_META, todayISO } from "@/lib/apiary";
 
 export function QueenFormDialog({
@@ -20,10 +21,12 @@ export function QueenFormDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: { introducedAt: string; origin?: string }) => Promise<void>;
+  onSubmit: (values: { introducedAt: string; origin?: string; genetics?: string; line?: string }) => Promise<void>;
 }) {
   const [introducedAt, setIntroducedAt] = useState(todayISO());
   const [origin, setOrigin] = useState("");
+  const [genetics, setGenetics] = useState("");
+  const [line, setLine] = useState("");
   const [busy, setBusy] = useState(false);
   const color = QUEEN_COLOR_META[queenColorFromDate(introducedAt)];
 
@@ -31,6 +34,8 @@ export function QueenFormDialog({
     if (!open) return;
     setIntroducedAt(todayISO());
     setOrigin("");
+    setGenetics("");
+    setLine("");
   }, [open]);
 
   async function handleSubmit(event: React.FormEvent) {
@@ -40,6 +45,8 @@ export function QueenFormDialog({
       await onSubmit({
         introducedAt,
         origin: origin.trim() || undefined,
+        genetics: genetics || undefined,
+        line: line.trim() || undefined,
       });
       onOpenChange(false);
     } finally {
@@ -83,6 +90,27 @@ export function QueenFormDialog({
               placeholder="Criadero propio, compra, realera…"
             />
           </Field>
+          <Field label="Genética / línea" hint="Opcional">
+            <Select value={genetics} onValueChange={setGenetics}>
+              <SelectTrigger><SelectValue placeholder="Selecciona" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="abeja_negra_canaria">Abeja negra canaria</SelectItem>
+                <SelectItem value="abeja_negra_iberica">Abeja negra ibérica</SelectItem>
+                <SelectItem value="buckfast">Buckfast</SelectItem>
+                <SelectItem value="carnica">Carnica</SelectItem>
+                <SelectItem value="ligustica">Ligustica</SelectItem>
+                <SelectItem value="caucasica">Caucásica</SelectItem>
+                <SelectItem value="hibrido">Híbrido</SelectItem>
+                <SelectItem value="otra">Otra</SelectItem>
+                <SelectItem value="desconocida">Desconocida</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          {(genetics === "hibrido" || genetics === "otra") ? (
+            <Field label="Línea / detalle" htmlFor="queen-line" hint="Opcional">
+              <Input id="queen-line" value={line} onChange={(event) => setLine(event.target.value)} placeholder="Ej. híbrido Buckfast × negra" />
+            </Field>
+          ) : null}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
