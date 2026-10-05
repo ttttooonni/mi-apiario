@@ -9,9 +9,18 @@ type DetectorConstructor = new (options?: { formats?: string[] }) => DetectorLik
 
 function colonyUrl(colonyId: string) {
   const base = import.meta.env.BASE_URL || "/";
-  return new URL(`${base.replace(/\/$/, "")}/colonias/${encodeURIComponent(colonyId)}`, window.location.origin).toString();
+  return new URL(base.replace(/\/$/, "") + "/colonias/" + encodeURIComponent(colonyId), window.location.origin).toString();
 }
 
+function isMiApiarioUrl(value: string): boolean {
+  try {
+    const url = new URL(value, window.location.origin);
+    const base = new URL(import.meta.env.BASE_URL || "/", window.location.origin);
+    return url.origin === window.location.origin && url.pathname.startsWith(base.pathname.replace(/\/$/, "") + "/colonias/");
+  } catch {
+    return false;
+  }
+}
 export function ColonyQrTools({ colonyId, label }: { colonyId: string; label: string }) {
   const [scanning, setScanning] = useState(false);
   const [cameraError, setCameraError] = useState("");
@@ -50,6 +59,11 @@ export function ColonyQrTools({ colonyId, label }: { colonyId: string; label: st
             if (value) {
               streamRef.current?.getTracks().forEach((track) => track.stop());
               streamRef.current = null;
+              if (!isMiApiarioUrl(value)) {
+                setScanning(false);
+                setCameraError("Este QR no pertenece a Mi Apiario.");
+                return;
+              }
               window.location.assign(value);
               return;
             }
