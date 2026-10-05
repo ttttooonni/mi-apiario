@@ -32,7 +32,7 @@ export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   const { data, error } = useNotebook();
-  const { saveApiary, saveTask, loadSample } = useAppMutations();
+  const { saveApiary, saveTask, removeTask, loadSample } = useAppMutations();
   const { show } = useTutorial();
   const [createOpen, setCreateOpen] = useState(false);
   const [taskFormOpen, setTaskFormOpen] = useState(false);
@@ -182,7 +182,7 @@ function Home() {
                     <span className={"flex size-11 shrink-0 flex-col items-center justify-center rounded-xl text-xs font-semibold leading-tight " + (overdue ? "bg-red-100 text-red-800" : task.priority === "high" ? "bg-amber-100 text-amber-900" : "bg-secondary text-secondary-foreground")}>{task.dueDate ? new Date(task.dueDate + "T12:00:00").toLocaleDateString("es-ES", { day: "2-digit", month: "short" }).replace(".", "") : "—"}</span>
                     <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{task.title}</span><span className="mt-0.5 block truncate text-xs text-muted-foreground">{colony ? COLONY_KIND_LABEL[colony.kind] + " " + colony.number : "Colonia"}{apiary ? " · " + apiary.name : ""}</span></span>
                     <span className={"shrink-0 rounded-full px-2 py-1 text-[11px] font-medium " + (overdue ? "bg-red-100 text-red-800" : task.priority === "high" ? "bg-amber-100 text-amber-900" : "bg-secondary text-secondary-foreground")}>{overdue ? "Vencida" : task.priority === "high" ? "Alta" : "Pendiente"}</span>
-                    <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+                    <button type="button" aria-label={`Eliminar tarea: ${task.title}`} title="Eliminar tarea" className="shrink-0 rounded-lg px-2 py-1 text-lg leading-none text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={(event) => { event.preventDefault(); event.stopPropagation(); if (window.confirm("¿Eliminar esta tarea?")) void removeTask.mutateAsync(task.id).catch((err: unknown) => toast.error(err instanceof Error ? err.message : "No se pudo eliminar la tarea")); }}>✕</button>\n                    <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
                   </Link>;
                 })}
                 {pendingTasks.length > 5 ? <p className="border-t px-4 py-3 text-xs text-muted-foreground">Mostrando 5 de {pendingTasks.length}. Abre una colonia para ver sus tareas.</p> : null}
