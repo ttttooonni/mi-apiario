@@ -19,6 +19,7 @@ export interface Colony {
 }
 export interface Queen {
   id: string; colonyId: string; introducedAt: string; retiredAt?: string; retireReason?: string; origin?: string;
+  genetics?: string; line?: string;
 }
 export interface ColonyAction {
   id: string; colonyId: string; type: ActionType; date: string; notes?: string; framesKind?: FrameKind;
