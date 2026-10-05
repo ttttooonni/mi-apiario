@@ -40,25 +40,24 @@ export function AppShell({ children }: { children: ReactNode }) {
         // El aviso seguirá funcionando aunque localStorage no esté disponible.
       }
 
-      if (!cancelled) {
-        setUpdateVersion(APP_VERSION);
-        setUpdateVisible(seen !== APP_VERSION);
-      }
+      let targetVersion = APP_VERSION;
 
       try {
         const response = await fetch(`${import.meta.env.BASE_URL}version.json?ts=${Date.now()}`, {
           cache: "no-store",
           headers: { "Cache-Control": "no-cache" },
         });
-        if (!response.ok) return;
-        const remote = (await response.json()) as { version?: string };
-        if (!remote.version || remote.version === APP_VERSION || cancelled) return;
-
-        setUpdateVersion(remote.version);
-        setUpdateVisible(true);
+        if (response.ok) {
+          const remote = (await response.json()) as { version?: string };
+          if (remote.version) targetVersion = remote.version;
+        }
       } catch {
-        // Si no hay red, usamos la versión incluida en la aplicación.
+        // Sin red usamos la versión incluida en la aplicación.
       }
+
+      if (cancelled) return;
+      setUpdateVersion(targetVersion);
+      setUpdateVisible(seen !== targetVersion);
     }
 
     void checkVersion();
