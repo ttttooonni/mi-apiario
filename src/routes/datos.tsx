@@ -61,6 +61,7 @@ function DataPage() {
           <div className="mt-4">
             <InstallAppButton label="Descargar aplicación" />
           </div>
+          <p className="mt-2 text-sm text-muted-foreground">Versión de datos: <strong>v{storage.dataVersion}</strong></p>
           <p className="mt-3 text-sm tabular-nums text-muted-foreground">
             {data.apiaries.length} apiarios · {data.colonies.length} colonias ·{" "}
             {data.actions.length} acciones · {data.production.length} lotes
