@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ApiaryFormDialog } from "@/components/apiary/apiary-form";
 import { ApiaryBulkActions } from "@/components/apiary/apiary-bulk-actions";
+import { ColonyLossDialog } from "@/components/apiary/colony-loss-dialog";
 import { ColonyFormDialog } from "@/components/apiary/colony-form";
 import { ColonyKindBadge } from "@/components/apiary/colony-kind-badge";
 import { ConfirmDelete } from "@/components/apiary/confirm-delete";
@@ -10,7 +11,7 @@ import { EmptyState } from "@/components/apiary/empty-state";
 import { QueenSwatch } from "@/components/apiary/queen-swatch";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { ACTION_LABEL, coloniesOf, currentQueen, formatDate, healthOfColony, lastAction, newId, nowIso, queenColorFromDate, QUEEN_COLOR_META, useAppMutations, useNotebook, type AppState, type Colony, type ColonyKind } from "@/lib/apiary";
+import { ACTION_LABEL, coloniesOf, COLONY_LOSS_CAUSE_LABEL, currentQueen, formatDate, healthOfColony, lastAction, newId, nowIso, queenColorFromDate, QUEEN_COLOR_META, useAppMutations, useNotebook, type AppState, type Colony, type ColonyKind } from "@/lib/apiary";
 
 export const Route = createFileRoute("/apiarios/$apiaryId")({ component: ApiaryDetailPage });
 const QUEEN_GENETICS_LABEL: Record<string, string> = {
@@ -27,9 +28,9 @@ const QUEEN_GENETICS_LABEL: Record<string, string> = {
 
 function ApiaryDetailPage() {
   const { apiaryId } = Route.useParams(); const navigate = useNavigate(); const { data } = useNotebook();
-  const { saveApiary, saveColony, removeApiary } = useAppMutations();
+  const { saveApiary, saveColony, removeApiary, saveLoss, removeLoss } = useAppMutations();
   const [editOpen, setEditOpen] = useState(false); const [deleteOpen, setDeleteOpen] = useState(false);
-  const [colonyKind, setColonyKind] = useState<ColonyKind>("hive"); const [colonyOpen, setColonyOpen] = useState(false);
+  const [colonyKind, setColonyKind] = useState<ColonyKind>("hive"); const [colonyOpen, setColonyOpen] = useState(false); const [lossOpen, setLossOpen] = useState(false);
   const apiary = data.apiaries.find((item) => item.id === apiaryId);
   if (!apiary) return <EmptyState title="Apiario no encontrado" description="Puede que lo hayas eliminado." actions={<Button asChild><Link to="/apiarios">Volver a apiarios</Link></Button>} />;
   const colonies = coloniesOf(data, apiary.id); const hives = colonies.filter((item) => item.kind === "hive"); const nucs = colonies.filter((item) => item.kind === "nuc");
@@ -38,6 +39,11 @@ function ApiaryDetailPage() {
     {apiary.photo && <img src={apiary.photo} alt={`Foto del apiario ${apiary.name}`} className="max-h-64 w-full rounded-2xl border object-cover" />}
     {apiary.notes && <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">{apiary.notes}</p>}
     {colonies.length > 0 ? <ApiaryBulkActions state={data} colonies={colonies} /> : null}
+    <section className="mb-7">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-display text-xl font-semibold">Histórico del apiario</h2><p className="text-sm text-muted-foreground">Pérdidas por temporada y causa. Las colonias no se borran al registrarlas.</p></div><Button size="lg" variant="outline" className="min-h-12 px-4 text-base" onClick={() => setLossOpen(true)}>Registrar pérdida</Button></div>
+      {data.losses.filter((loss) => loss.apiaryId === apiary.id).length ? <div className="grid gap-2">{[...data.losses].filter((loss) => loss.apiaryId === apiary.id).sort((a,b) => b.date.localeCompare(a.date)).map((loss) => <div key={loss.id} className="flex items-center gap-3 rounded-xl border bg-card p-3"><div className="min-w-0 flex-1"><p className="font-medium">{loss.kind === "hive" ? "Colmena" : "Núcleo"} {loss.colonyNumber} · {loss.year}</p><p className="text-sm text-muted-foreground">{COLONY_LOSS_CAUSE_LABEL[loss.cause]} · {formatDate(loss.date)}{loss.notes ? " · " + loss.notes : ""}</p></div><button type="button" className="rounded-lg px-2 py-1 text-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label="Eliminar pérdida" onClick={() => { if (window.confirm("¿Eliminar este registro histórico?")) void removeLoss.mutateAsync(loss.id); }}>✕</button></div>)}</div> : <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">No hay pérdidas registradas.</p>}
+      <ColonyLossDialog open={lossOpen} onOpenChange={setLossOpen} apiaryId={apiary.id} colonies={colonies} onSubmit={async (loss) => { await saveLoss.mutateAsync(loss); toast.success("Pérdida registrada en el histórico"); }} />
+    </section>
     <ColonySection title="Colmenas" empty="Todavía no hay colmenas en este apiario." actionLabel="Añadir colmena" colonies={hives} onAdd={() => { setColonyKind("hive"); setColonyOpen(true); }} state={data} />
     <ColonySection title="Núcleos" empty="Todavía no hay núcleos en este apiario." actionLabel="Añadir núcleo" colonies={nucs} onAdd={() => { setColonyKind("nuc"); setColonyOpen(true); }} state={data} />
     <ApiaryFormDialog open={editOpen} onOpenChange={setEditOpen} initial={apiary} onSubmit={async (values) => { await saveApiary.mutateAsync({ ...apiary, ...values, updatedAt: nowIso() }); toast.success("Apiario actualizado"); }} />
