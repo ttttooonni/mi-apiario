@@ -175,7 +175,7 @@ export function healthSummary(row: HealthRecord): string | null {
   const bits: string[] = [];
   if (row.kind !== "treatment") bits.push(HEALTH_KIND_LABEL[row.kind]);
   if (row.product) bits.push(row.product);
-  if (row.varroaCount !== undefined) bits.push(`Varroa: ${row.varroaCount}`);
+  if (row.varroaCount !== undefined) bits.push(`Varroa: ${row.varroaCount}${varroaInfestationPercent(row) !== undefined ? ` · ${varroaInfestationPercent(row)!.toFixed(1)}%` : ""}`);
   if (row.foodReserve) bits.push(`Miel: ${({ good: "buena", low: "escasa", very_low: "muy escasa" } as const)[row.foodReserve]}`);
   if (row.pollenReserve) bits.push(`Polen: ${({ good: "bueno", low: "escaso", absent: "ausente" } as const)[row.pollenReserve]}`);
   if (row.feedingNeeded) bits.push(`Alimentación: ${row.feedingType === "syrup" ? "jarabe" : row.feedingType === "fondant" ? "fondant" : row.feedingType === "protein" ? "proteína" : "otro"}${row.feedingAmount ? ` (${row.feedingAmount})` : ""}`);
