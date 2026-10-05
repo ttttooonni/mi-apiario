@@ -9,12 +9,20 @@ export type QueenColor = "white" | "yellow" | "red" | "green" | "blue";
 export type HealthTopic = "varroa" | "inspection" | "nosema" | "foulbrood" | "chalkbrood" | "hornet" | "surveillance" | "other";
 export type HealthKind = "treatment" | "observation" | "sampling";
 
+export type ColonyTemperament = "very_calm" | "calm" | "normal" | "nervous" | "aggressive";
+export type ColonyProductivity = "very_high" | "high" | "normal" | "low" | "very_low";
+export type ColonySwarming = "very_low" | "low" | "medium" | "high" | "very_high";
+export type ColonyHygiene = "very_good" | "good" | "normal" | "low";
+export type QueenDominance = "low" | "normal" | "high";
+
 export interface Apiary {
   id: string; name: string; location: string; notes?: string; photo?: string;
   createdAt: string; updatedAt: string;
 }
 export interface Colony {
   id: string; apiaryId: string; kind: ColonyKind; number: string; notes?: string; photo?: string;
+  temperament?: ColonyTemperament; productivity?: ColonyProductivity; swarmingTendency?: ColonySwarming;
+  hygiene?: ColonyHygiene; queenDominance?: QueenDominance;
   createdAt: string; updatedAt: string;
 }
 export interface Queen {
