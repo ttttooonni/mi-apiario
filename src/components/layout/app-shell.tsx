@@ -27,7 +27,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { show } = useTutorial();
   const [updateVisible, setUpdateVisible] = useState(false);
-  const [updateVersion, setUpdateVersion] = useState(APP_VERSION);
+  const [updateVersion, setUpdateVersion] = useState(APP_VERSION);\n  const [updateBuildId, setUpdateBuildId] = useState(APP_BUILD_ID);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,7 +68,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   function dismissUpdate() {
-    try {\n      window.localStorage.setItem("mi-apiario:app-version-seen", updateVersion);\n      window.localStorage.setItem("mi-apiario:app-build-seen", APP_BUILD_ID);\n    } catch { /* best effort */ }
+    try {\n      window.localStorage.setItem("mi-apiario:app-version-seen", updateVersion);\n      window.localStorage.setItem("mi-apiario:app-build-seen", updateBuildId);\n    } catch { /* best effort */ }
     setUpdateVisible(false);
   }
 
