@@ -67,9 +67,18 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  function updateApp() {\n    const url = `${window.location.pathname}?actualizacion=${Date.now()}${window.location.hash}`;\n    window.location.replace(url);\n  }\n\n  function dismissUpdate() {
-    try {\n      window.localStorage.setItem("mi-apiario:app-version-seen", updateVersion);\n      window.localStorage.setItem("mi-apiario:app-build-seen", updateBuildId);\n    } catch { /* best effort */ }
+  function updateApp() {
+    const url = `${window.location.pathname}?actualizacion=${Date.now()}${window.location.hash}`;
+    window.location.replace(url);
+  }
+
+  function dismissUpdate() {
+    try {
+      window.localStorage.setItem("mi-apiario:app-version-seen", updateVersion);
+      window.localStorage.setItem("mi-apiario:app-build-seen", updateBuildId);
+    } catch { /* best effort */ }
     setUpdateVisible(false);
+  }
   }
 
   return (
