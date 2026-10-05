@@ -13,15 +13,15 @@ import { ACTION_LABEL, coloniesOf, currentQueen, formatDate, healthOfColony, las
 
 export const Route = createFileRoute("/apiarios/$apiaryId")({ component: ApiaryDetailPage });
 const QUEEN_GENETICS_LABEL: Record<string, string> = {
-  canaria_black: "Negra canaria",
-  iberian_black: "Negra ibérica",
+  abeja_negra_canaria: "Negra canaria",
+  abeja_negra_iberica: "Negra ibérica",
   buckfast: "Buckfast",
   carnica: "Cárnica",
   ligustica: "Ligústica",
   caucasica: "Caucásica",
-  hybrid: "Híbrida",
-  other: "Otra",
-  unknown: "Desconocida",
+  hibrido: "Híbrida",
+  otra: "Otra",
+  desconocida: "Desconocida",
 };
 
 function ApiaryDetailPage() {
@@ -39,7 +39,7 @@ function ApiaryDetailPage() {
     <ColonySection title="Colmenas" empty="Todavía no hay colmenas en este apiario." actionLabel="Añadir colmena" colonies={hives} onAdd={() => { setColonyKind("hive"); setColonyOpen(true); }} state={data} />
     <ColonySection title="Núcleos" empty="Todavía no hay núcleos en este apiario." actionLabel="Añadir núcleo" colonies={nucs} onAdd={() => { setColonyKind("nuc"); setColonyOpen(true); }} state={data} />
     <ApiaryFormDialog open={editOpen} onOpenChange={setEditOpen} initial={apiary} onSubmit={async (values) => { await saveApiary.mutateAsync({ ...apiary, ...values, updatedAt: nowIso() }); toast.success("Apiario actualizado"); }} />
-    <ColonyFormDialog open={colonyOpen} onOpenChange={setColonyOpen} kind={colonyKind} onSubmit={async (values) => { await saveColony.mutateAsync({ id: newId(), apiaryId: apiary.id, kind: colonyKind, number: values.number, notes: values.notes, photo: values.photo, createdAt: nowIso(), updatedAt: nowIso() }); toast.success(colonyKind === "hive" ? "Colmena añadida" : "Núcleo añadido"); }} />
+    <ColonyFormDialog open={colonyOpen} onOpenChange={setColonyOpen} kind={colonyKind} onSubmit={async (values) => { await saveColony.mutateAsync({ id: newId(), apiaryId: apiary.id, kind: colonyKind, number: values.number, notes: values.notes, photo: values.photo, temperament: values.temperament, productivity: values.productivity, swarmingTendency: values.swarmingTendency, hygiene: values.hygiene, queenDominance: values.queenDominance, createdAt: nowIso(), updatedAt: nowIso() }); toast.success(colonyKind === "hive" ? "Colmena añadida" : "Núcleo añadido"); }} />
     <ConfirmDelete open={deleteOpen} onOpenChange={setDeleteOpen} title={`Eliminar ${apiary.name}`} description="Se eliminarán las colmenas, los núcleos y todo su historial." onConfirm={async () => { await removeApiary.mutateAsync(apiary.id); toast.success("Apiario eliminado"); await navigate({ to: "/apiarios" }); }} />
   </div>;
 }
@@ -55,8 +55,9 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
   const action = lastAction(state, colony.id);
   const latestHealth = healthOfColony(state, colony.id)[0];
   const queenMeta = queen ? QUEEN_COLOR_META[queenColorFromDate(queen.introducedAt)] : undefined;
+  const profileLabels = { temperament: { very_calm: "Muy tranquila", calm: "Tranquila", normal: "Normal", nervous: "Nerviosa", aggressive: "Agresiva" }, productivity: { very_high: "Productividad muy alta", high: "Productividad alta", normal: "Productividad normal", low: "Productividad baja", very_low: "Productividad muy baja" }, swarmingTendency: { very_low: "Enjambrazón muy baja", low: "Enjambrazón baja", medium: "Enjambrazón media", high: "Enjambrazón alta", very_high: "Enjambrazón muy alta" }, hygiene: { very_good: "Higiene muy buena", good: "Higiene buena", normal: "Higiene normal", low: "Higiene baja" }, queenDominance: { low: "Reina: dominancia baja", normal: "Reina: dominancia normal", high: "Reina: dominancia alta" } } as const;
   const quickInfo = [
-    queenMeta ? `Reina ${queenMeta.label.toLowerCase()}` : null,\n    queen?.genetics ? `🧬 ${QUEEN_GENETICS_LABEL[queen.genetics] ?? queen.genetics}${queen.line ? ` · ${queen.line}` : ""}` : null,
+    queenMeta ? `Reina ${queenMeta.label.toLowerCase()}` : null,\n    queen?.genetics ? `🧬 ${QUEEN_GENETICS_LABEL[queen.genetics] ?? queen.genetics}${queen.line ? ` · ${queen.line}` : ""}` : null,\n    colony.temperament ? `🐝 ${profileLabels.temperament[colony.temperament]}` : null,\n    colony.productivity ? `🍯 ${profileLabels.productivity[colony.productivity]}` : null,\n    colony.swarmingTendency ? `↗ ${profileLabels.swarmingTendency[colony.swarmingTendency]}` : null,\n    colony.hygiene ? `🧼 ${profileLabels.hygiene[colony.hygiene]}` : null,\n    colony.queenDominance ? `👑 ${profileLabels.queenDominance[colony.queenDominance]}` : null,
     latestHealth?.topic === "varroa" && latestHealth.varroaCount !== undefined
       ? `Varroa ${latestHealth.varroaCount}`
       : latestHealth?.topic === "inspection" && latestHealth.feedingNeeded
