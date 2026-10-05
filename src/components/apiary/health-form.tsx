@@ -67,6 +67,7 @@ export function HealthFormDialog({
   const [foodReserve, setFoodReserve] = useState<HealthRecord["foodReserve"]>("good");
   const [pollenReserve, setPollenReserve] = useState<HealthRecord["pollenReserve"]>("good");
   const [feedingNeeded, setFeedingNeeded] = useState(false);
+  const [feedingForm, setFeedingForm] = useState<HealthRecord["feedingForm"]>("liquid");
   const [feedingType, setFeedingType] = useState<HealthRecord["feedingType"]>("syrup");
   const [feedingAmount, setFeedingAmount] = useState("");
   const [queenSeen, setQueenSeen] = useState<boolean | undefined>(undefined);
@@ -93,6 +94,7 @@ export function HealthFormDialog({
     setFoodReserve("good");
     setPollenReserve("good");
     setFeedingNeeded(false);
+    setFeedingForm("liquid");
     setFeedingType("syrup");
     setFeedingAmount("");
     setQueenSeen(undefined);
@@ -131,6 +133,7 @@ export function HealthFormDialog({
         foodReserve: topic === "inspection" ? foodReserve : undefined,
         pollenReserve: topic === "inspection" ? pollenReserve : undefined,
         feedingNeeded: topic === "inspection" ? feedingNeeded : undefined,
+        feedingForm: topic === "inspection" && feedingNeeded ? feedingForm : undefined,
         feedingType: topic === "inspection" && feedingNeeded ? feedingType : undefined,
         feedingAmount: topic === "inspection" && feedingNeeded ? (feedingAmount.trim() || undefined) : undefined,
         queenSeen: topic === "inspection" ? queenSeen : undefined,
@@ -277,10 +280,28 @@ export function HealthFormDialog({
                 Necesita alimentación
               </label>
               {feedingNeeded ? <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <Field label="Alimentación">
+                  <Select value={feedingForm} onValueChange={(v) => setFeedingForm(v as HealthRecord["feedingForm"])}>
+                    <SelectTrigger><SelectValue /></SelectTrigger><SelectContent>
+                      <SelectItem value="liquid">Líquida</SelectItem><SelectItem value="paste">Pasta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
                 <Field label="Tipo">
                   <Select value={feedingType} onValueChange={(v) => setFeedingType(v as HealthRecord["feedingType"])}>
                     <SelectTrigger><SelectValue /></SelectTrigger><SelectContent>
-                      <SelectItem value="syrup">Jarabe</SelectItem><SelectItem value="fondant">Fondant</SelectItem><SelectItem value="protein">Proteína</SelectItem><SelectItem value="other">Otro</SelectItem>
+                      {feedingForm === "liquid" ? (
+                        <>
+                          <SelectItem value="syrup">Jarabe</SelectItem>
+                          <SelectItem value="other">Otra líquida</SelectItem>
+                        </>
+                      ) : (
+                        <>
+                          <SelectItem value="fondant">Fondant</SelectItem>
+                          <SelectItem value="protein">Pasta proteica</SelectItem>
+                          <SelectItem value="other">Otra pasta</SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </Field>
