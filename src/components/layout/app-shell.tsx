@@ -79,7 +79,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     } catch { /* best effort */ }
     setUpdateVisible(false);
   }
-  }
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
