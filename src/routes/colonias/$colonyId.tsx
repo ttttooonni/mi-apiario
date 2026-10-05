@@ -13,6 +13,7 @@ import { QueenFormDialog } from "@/components/apiary/queen-form";
 import { QueenColorCaption, QueenSwatch } from "@/components/apiary/queen-swatch";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -53,6 +54,7 @@ function ColonyPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingAction, setDeletingAction] = useState<string | null>(null);
   const [showAllLogs, setShowAllLogs] = useState(false);
+  const [materialOpen, setMaterialOpen] = useState(false);
 
   const colony = data.colonies.find((item) => item.id === colonyId);
   if (!colony) {
@@ -75,7 +77,12 @@ function ColonyPage() {
   const previous = history.filter((item) => item.retiredAt);
   const logs = actionsOf(data, colony.id);
   const colonyTasks = (data.tasks ?? []).filter((task) => task.colonyId === colony.id);
-  const inventory = inventoryForColony(data.actions, colony.id);
+  const inventory = inventoryForColony(data.actions, colony.id, {
+    standardFrames: colony.materialStandardAdjustment,
+    mediumFrames: colony.materialMediumAdjustment,
+    supers: colony.materialSupersAdjustment,
+  });
+  const historicalInventory = inventoryForColony(data.actions, colony.id);
   const visibleLogs = showAllLogs ? logs : logs.slice(0, 40);
   const healthRows = healthOfColony(data, colony.id);
   const lastVarroa = lastVarroaTreatment(data, colony.id);
@@ -132,10 +139,52 @@ function ColonyPage() {
       ) : null}
 
       <Card className="mb-6 p-5">
-        <h2 className="font-display text-lg font-medium">Material registrado</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Estimación calculada desde el historial. Añadir o retirar alzas no modifica los cuadros.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-display text-lg font-medium">Material registrado</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Puedes corregir aquí el material real sin crear una acción. El historial de movimientos se conserva.
+            </p>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => setMaterialOpen((value) => !value)}>
+            {materialOpen ? "Cerrar" : "Editar material"}
+          </Button>
+        </div>
+        {materialOpen ? (
+          <div className="mt-4 rounded-xl border bg-muted/30 p-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="grid gap-1 text-sm">
+                <span className="font-medium">Cuadros normales</span>
+                <Input id="material-standard" type="number" min="0" step="1" defaultValue={inventory.standardFrames} />
+              </label>
+              <label className="grid gap-1 text-sm">
+                <span className="font-medium">Cuadros media alza</span>
+                <Input id="material-medium" type="number" min="0" step="1" defaultValue={inventory.mediumFrames} />
+              </label>
+              <label className="grid gap-1 text-sm">
+                <span className="font-medium">Alzas</span>
+                <Input id="material-supers" type="number" min="0" step="1" defaultValue={inventory.supers} />
+              </label>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Se guarda como corrección del inventario actual. Las acciones anteriores no se modifican.
+            </p>
+            <Button className="mt-3" onClick={async () => {
+              const standard = Math.max(0, Number((document.getElementById("material-standard") as HTMLInputElement).value || 0));
+              const medium = Math.max(0, Number((document.getElementById("material-medium") as HTMLInputElement).value || 0));
+              const supers = Math.max(0, Number((document.getElementById("material-supers") as HTMLInputElement).value || 0));
+              await saveColony.mutateAsync({
+                ...colony,
+                materialStandardAdjustment: standard - historicalInventory.standardFrames,
+                materialMediumAdjustment: medium - historicalInventory.mediumFrames,
+                materialSupersAdjustment: supers - historicalInventory.supers,
+                updatedAt: new Date().toISOString(),
+              });
+              setMaterialOpen(false);
+              toast.success("Material actualizado");
+            }}>Guardar material</Button>
+          </div>
+        ) : null}
         <div className="mt-4 grid grid-cols-3 gap-3">
           <div className="rounded-xl bg-muted/60 p-3">
             <p className="text-xs text-muted-foreground">Cuadros normales</p>
