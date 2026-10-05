@@ -2,6 +2,7 @@ import type { AppState, YearClose } from "./types";
 import { makePersistedState, migratePersistedState, PERSISTED_VERSION } from "./migration";
 
 const LS_KEY = "mi-apiario:v1";
+const PRE_MIGRATION_KEY = "mi-apiario:pre-migration:v1";
 /** Typical browser localStorage ceiling is ~5 MB. Warn before we hit it. */
 const SOFT_LIMIT_BYTES = 3_500_000;
 const HARD_HINT_BYTES = 5_000_000;
@@ -37,6 +38,7 @@ export type PersistStatus = {
   nearLimit: boolean;
   failed: boolean;
   corrupt: boolean;
+  dataVersion: number;
 };
 
 let cache: AppState = emptyClone();
@@ -46,6 +48,7 @@ let persistDirty = false;
 let lastBytes = 0;
 let lastFailed = false;
 let storageCorrupt = false;
+let dataVersion = PERSISTED_VERSION;
 
 function emptyClone(): AppState {
   return {
@@ -77,26 +80,23 @@ function byteLength(text: string): number {
 
 function loadFromLocalStorage(): AppState {
   if (typeof window === "undefined") return emptyClone();
+  const raw = window.localStorage.getItem(LS_KEY);
+  if (!raw) return emptyClone();
+  lastBytes = byteLength(raw);
   try {
-    const raw = window.localStorage.getItem(LS_KEY);
-    if (!raw) return emptyClone();
-    lastBytes = byteLength(raw);
-    const parsed = JSON.parse(raw) as Partial<AppState>;
-    const requiredStores: StoreName[] = ["apiaries", "colonies", "queens", "actions", "health", "production", "yearCloses"];
-    if (!parsed || typeof parsed !== "object" || requiredStores.some((key) => !Array.isArray(parsed[key]))) {
-      throw new Error("Los datos guardados no tienen la estructura esperada.");
+    const migrated = migratePersistedState(JSON.parse(raw));
+    if (migrated.migrated) {
+      try { window.localStorage.setItem(PRE_MIGRATION_KEY, raw); } catch { /* best effort */ }
+      const nextRaw = JSON.stringify(makePersistedState(migrated.state));
+      window.localStorage.setItem(LS_KEY, nextRaw);
+      lastBytes = byteLength(nextRaw);
     }
-    return {
-      apiaries: parsed.apiaries!,
-      colonies: parsed.colonies!,
-      queens: parsed.queens!,
-      actions: parsed.actions!,
-      health: parsed.health!,
-      production: parsed.production!,
-      yearCloses: parsed.yearCloses!,
-      tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
-    };
+    dataVersion = migrated.version;
+    storageCorrupt = false;
+    lastFailed = false;
+    return migrated.state;
   } catch {
+    // Nunca sustituimos datos ilegibles por un cuaderno vacío.
     storageCorrupt = true;
     lastFailed = true;
     return emptyClone();
@@ -111,10 +111,11 @@ function persistNow(): boolean {
   }
   if (typeof window === "undefined") {
     lastFailed = false;
+    dataVersion = PERSISTED_VERSION;
     return true;
   }
   try {
-    const raw = JSON.stringify(cache);
+    const raw = JSON.stringify(makePersistedState(cache));
     lastBytes = byteLength(raw);
     window.localStorage.setItem(LS_KEY, raw);
     lastFailed = false;
@@ -149,6 +150,7 @@ export function getPersistStatus(): PersistStatus {
     nearLimit: lastBytes >= SOFT_LIMIT_BYTES,
     failed: lastFailed,
     corrupt: storageCorrupt,
+    dataVersion,
   };
 }
 
@@ -191,7 +193,7 @@ export async function restoreFromBackup(state: AppState): Promise<void> {
   hydrate();
   if (typeof window !== "undefined") {
     try {
-      window.localStorage.setItem(LS_KEY, JSON.stringify(state));
+      window.localStorage.setItem(LS_KEY, JSON.stringify(makePersistedState(state)));
     } catch {
       lastFailed = true;
       throw new Error("No se pudo restaurar la copia. Los datos anteriores se han conservado.");
@@ -200,8 +202,9 @@ export async function restoreFromBackup(state: AppState): Promise<void> {
   cache = cloneState(state);
   storageCorrupt = false;
   lastFailed = false;
-  lastBytes = typeof window === "undefined" ? 0 : byteLength(JSON.stringify(cache));
+  lastBytes = typeof window === "undefined" ? 0 : byteLength(JSON.stringify(makePersistedState(cache)));
   hydrated = true;
+  dataVersion = PERSISTED_VERSION;
   persistDirty = false;
 }
 
