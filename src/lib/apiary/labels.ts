@@ -5,6 +5,7 @@ import type {
   ColonyKind,
   FrameKind,
   ProductKind,
+  ColonyLossCause,
 } from "./types";
 
 export const ACTION_TYPES: { id: ActionType; label: string }[] = [
@@ -126,3 +127,7 @@ export function suggestLot(
   }
   return `${base}${String(seq).padStart(2, "0")}`;
 }
+
+export const COLONY_LOSS_CAUSE_LABEL: Record<ColonyLossCause, string> = {
+  dead: "Muerte", absconded: "Enjambrazón / abandono", queenless: "Sin reina", weak: "Colonia débil", robbed: "Pillaje", disease: "Enfermedad", varroa: "Varroa", pesticide: "Pesticida / intoxicación", swarming: "Enjambrazón", unknown: "Causa desconocida", other: "Otra",
+};
