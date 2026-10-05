@@ -10,6 +10,7 @@ import type {
 
 export const HEALTH_TOPIC_LABEL: Record<HealthTopic, string> = {
   varroa: "Varroa",
+  inspection: "Revisión de colmena",
   nosema: "Nosema",
   foulbrood: "Loque",
   chalkbrood: "Pollo escayolado",
@@ -20,6 +21,7 @@ export const HEALTH_TOPIC_LABEL: Record<HealthTopic, string> = {
 
 export const HEALTH_TOPIC_ORDER: HealthTopic[] = [
   "varroa",
+  "inspection",
   "nosema",
   "foulbrood",
   "chalkbrood",
