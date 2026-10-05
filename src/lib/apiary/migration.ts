@@ -14,6 +14,7 @@ function normalizeState(raw: LegacyState): AppState {
     production: Array.isArray(raw.production) ? raw.production : [],
     yearCloses: Array.isArray(raw.yearCloses) ? raw.yearCloses : [],
     tasks: Array.isArray(raw.tasks) ? raw.tasks : [],
+    losses: Array.isArray(raw.losses) ? raw.losses : [],
   };
 }
 
