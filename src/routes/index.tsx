@@ -39,6 +39,7 @@ function Home() {
   const [taskApiaryId, setTaskApiaryId] = useState("");
   const [taskColonyId, setTaskColonyId] = useState("");
   const [taskTitle, setTaskTitle] = useState("");
+  const [taskType, setTaskType] = useState("Revisión");
   const [taskDueDate, setTaskDueDate] = useState("");
   const [taskPriority, setTaskPriority] = useState<"high" | "normal" | "low">("normal");
   const [taskNotes, setTaskNotes] = useState("");
@@ -121,7 +122,7 @@ function Home() {
                 try {
                   const task = { id: crypto.randomUUID(), colonyId: effectiveColonyId, title: taskTitle.trim(), dueDate: taskDueDate || undefined, priority: taskPriority, notes: taskNotes.trim() || undefined, createdAt: new Date().toISOString() };
                   await saveTask.mutateAsync(task);
-                  setTaskTitle(""); setTaskDueDate(""); setTaskPriority("normal"); setTaskNotes(""); setTaskFormOpen(false);
+                  setTaskTitle(""); setTaskType("Revisión"); setTaskDueDate(""); setTaskPriority("normal"); setTaskNotes(""); setTaskFormOpen(false);
                   toast.success("Tarea guardada");
                 } catch (err) {
                   toast.error(err instanceof Error ? err.message : "No se pudo guardar la tarea");
@@ -139,8 +140,17 @@ function Home() {
                         {taskColonies.map((colony) => <option key={colony.id} value={colony.id}>{COLONY_KIND_LABEL[colony.kind]} {colony.number}</option>)}
                       </select>
                     </label>
-                    <label className="grid gap-1 text-sm font-medium">Tarea
-                      <Input value={taskTitle} onChange={(event) => setTaskTitle(event.target.value)} placeholder="Ej. Revisar puesta o colocar alza" maxLength={200} required />
+                    <label className="grid gap-1 text-sm font-medium">Tipo de tarea
+                      <select className="h-11 rounded-md border border-input bg-card px-3 text-base" value={taskType} onChange={(event) => { setTaskType(event.target.value); setTaskTitle(event.target.value); }} required>
+                        <option>Revisión</option><option>Revisar puesta</option><option>Revisar reservas</option><option>Revisar cría</option><option>Revisar reina</option>
+                        <option>Cambio de reina</option><option>Introducir reina</option><option>Genética</option><option>Marcar reina</option>
+                        <option>Marcos</option><option>Añadir marcos</option><option>Retirar marcos</option><option>Colocar alza</option><option>Retirar alza</option>
+                        <option>Alimentación</option><option>Jarabe</option><option>Pasta</option><option>Sanidad</option><option>Varroa</option><option>Tratamiento</option>
+                        <option>Dividir colonia</option><option>Crear núcleo</option><option>Trasladar</option><option>Preparar cosecha</option><option>Cosechar</option><option>Material</option><option>Fotografía</option><option>Otra</option>
+                      </select>
+                    </label>
+                    <label className="grid gap-1 text-sm font-medium">Detalle (opcional)
+                      <Input value={taskTitle} onChange={(event) => setTaskTitle(event.target.value)} placeholder="Puedes concretar la tarea" maxLength={200} required />
                     </label>
                     <div className="grid grid-cols-2 gap-3">
                       <label className="grid gap-1 text-sm font-medium">Fecha prevista
