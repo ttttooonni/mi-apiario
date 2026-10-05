@@ -92,7 +92,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <p className="mt-1 text-sm text-muted-foreground">Versión {APP_VERSION}. Incluye mejoras y conserva tus datos locales.</p>
               <p className="mt-1 text-xs text-muted-foreground">Si no ves los cambios, recarga la aplicación.</p>
             </div>
-            <Button type="button" variant="ghost" size="sm" onClick={dismissUpdate}>Entendido</Button>
+            <div className="flex shrink-0 gap-1"><Button type="button" variant="ghost" size="sm" onClick={dismissUpdate}>Después</Button><Button type="button" size="sm" onClick={() => window.location.reload()}>Actualizar</Button></div>
           </section>
         ) : null}
         {children}
