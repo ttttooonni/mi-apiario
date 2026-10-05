@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Archive, CircleHelp, Hexagon, History, Home, Scale, Shield, Share2 } from "lucide-react";
 import type { ReactNode } from "react";
 import { InstallAppButton } from "@/components/apiary/install-app";
@@ -6,6 +7,7 @@ import { useTutorial } from "@/components/apiary/tutorial";
 import { HiveMark } from "@/components/brand/hive-mark";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { APP_VERSION } from "@/lib/apiary";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: Home, exact: true },
@@ -24,6 +26,21 @@ function isActive(pathname: string, to: string, exact?: boolean) {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { show } = useTutorial();
+  const [updateVisible, setUpdateVisible] = useState(false);
+
+  useEffect(() => {
+    try {
+      const seen = window.localStorage.getItem("mi-apiario:app-version-seen");
+      setUpdateVisible(seen !== APP_VERSION);
+    } catch {
+      setUpdateVisible(false);
+    }
+  }, []);
+
+  function dismissUpdate() {
+    try { window.localStorage.setItem("mi-apiario:app-version-seen", APP_VERSION); } catch { /* best effort */ }
+    setUpdateVisible(false);
+  }
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -67,6 +84,17 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <main className="mx-auto w-full max-w-5xl px-4 pt-5 pb-8 md:pl-[calc(15rem+2rem)] md:pr-8 md:pt-8 md:pb-12">
+        {updateVisible ? (
+          <section className="mb-4 flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4" role="status">
+            <span className="text-lg" aria-hidden="true">🆕</span>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">Nueva versión de Mi Apiario</p>
+              <p className="mt-1 text-sm text-muted-foreground">Versión {APP_VERSION}. Incluye mejoras y conserva tus datos locales.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Si no ves los cambios, recarga la aplicación.</p>
+            </div>
+            <Button type="button" variant="ghost" size="sm" onClick={dismissUpdate}>Entendido</Button>
+          </section>
+        ) : null}
         {children}
       </main>
 
