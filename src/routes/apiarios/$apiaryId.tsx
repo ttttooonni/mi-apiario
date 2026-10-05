@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/apiary/empty-state";
 import { QueenSwatch } from "@/components/apiary/queen-swatch";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { ACTION_LABEL, coloniesOf, COLONY_LOSS_CAUSE_LABEL, currentQueen, formatDate, healthOfColony, lastAction, newId, nowIso, queenColorFromDate, QUEEN_COLOR_META, useAppMutations, useNotebook, varroaInfestationPercent, varroaLevel, VARROA_LEVEL_LABEL, VARROA_LEVEL_CLASS, latestVarroaCheck, type AppState, type Colony, type ColonyKind } from "@/lib/apiary";
+import { ACTION_LABEL, coloniesOf, COLONY_LOSS_CAUSE_LABEL, currentQueen, formatDate, healthOfColony, lastAction, newId, nowIso, queenColorFromDate, QUEEN_COLOR_META, useAppMutations, useNotebook, varroaInfestationPercent, varroaLevel, VARROA_LEVEL_LABEL, VARROA_LEVEL_CLASS, latestVarroaCheck, inventoryForColony, type AppState, type Colony, type ColonyKind } from "@/lib/apiary";
 
 export const Route = createFileRoute("/apiarios/$apiaryId")({ component: ApiaryDetailPage });
 const QUEEN_GENETICS_LABEL: Record<string, string> = {
@@ -61,6 +61,11 @@ function ColonySection({ title, empty, actionLabel, colonies, onAdd, state }: { 
 function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
   const queen = currentQueen(state, colony.id);
   const action = lastAction(state, colony.id);
+  const inventory = inventoryForColony(state.actions, colony.id, {
+    standardFrames: colony.materialStandardAdjustment,
+    mediumFrames: colony.materialMediumAdjustment,
+    supers: colony.materialSupersAdjustment,
+  });
   const latestHealth = healthOfColony(state, colony.id)[0];
   const varroaCheck = latestVarroaCheck(state, colony.id);
   const varroaPercent = varroaCheck ? varroaInfestationPercent(varroaCheck) : undefined;
@@ -68,7 +73,7 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
   const queenMeta = queen ? QUEEN_COLOR_META[queenColorFromDate(queen.introducedAt)] : undefined;
   const profileLabels = { temperament: { very_calm: "Muy tranquila", calm: "Tranquila", normal: "Normal", nervous: "Nerviosa", aggressive: "Agresiva" }, productivity: { very_high: "Productividad muy alta", high: "Productividad alta", normal: "Productividad normal", low: "Productividad baja", very_low: "Productividad muy baja" }, swarmingTendency: { very_low: "Enjambrazón muy baja", low: "Enjambrazón baja", medium: "Enjambrazón media", high: "Enjambrazón alta", very_high: "Enjambrazón muy alta" }, hygiene: { very_good: "Higiene muy buena", good: "Higiene buena", normal: "Higiene normal", low: "Higiene baja" }, queenDominance: { low: "Reina: dominancia baja", normal: "Reina: dominancia normal", high: "Reina: dominancia alta" } } as const;
   const quickInfo = [
-    queenMeta ? `Reina ${queenMeta.label.toLowerCase()}` : null,\n    queen?.genetics ? `🧬 ${QUEEN_GENETICS_LABEL[queen.genetics] ?? queen.genetics}${queen.line ? ` · ${queen.line}` : ""}` : null,\n    colony.temperament ? `🐝 ${profileLabels.temperament[colony.temperament]}` : null,\n    colony.productivity ? `🍯 ${profileLabels.productivity[colony.productivity]}` : null,\n    colony.swarmingTendency ? `↗ ${profileLabels.swarmingTendency[colony.swarmingTendency]}` : null,\n    colony.hygiene ? `🧼 ${profileLabels.hygiene[colony.hygiene]}` : null,\n    colony.queenDominance ? `👑 ${profileLabels.queenDominance[colony.queenDominance]}` : null,
+    queenMeta ? `Reina ${queenMeta.label.toLowerCase()}` : null,\n    `📦 ${inventory.standardFrames} cuadros${inventory.mediumFrames ? ` + ${inventory.mediumFrames} media alza` : ""} · ${inventory.supers} alzas`,\n    queen?.genetics ? `🧬 ${QUEEN_GENETICS_LABEL[queen.genetics] ?? queen.genetics}${queen.line ? ` · ${queen.line}` : ""}` : null,\n    colony.temperament ? `🐝 ${profileLabels.temperament[colony.temperament]}` : null,\n    colony.productivity ? `🍯 ${profileLabels.productivity[colony.productivity]}` : null,\n    colony.swarmingTendency ? `↗ ${profileLabels.swarmingTendency[colony.swarmingTendency]}` : null,\n    colony.hygiene ? `🧼 ${profileLabels.hygiene[colony.hygiene]}` : null,\n    colony.queenDominance ? `👑 ${profileLabels.queenDominance[colony.queenDominance]}` : null,
     varroaCheck && varroaPercent !== undefined && varroaStatus
       ? `🕷️ Varroa ${varroaPercent.toFixed(1)} % · ${VARROA_LEVEL_LABEL[varroaStatus]}`
       : latestHealth?.topic === "varroa" && latestHealth.varroaCount !== undefined
