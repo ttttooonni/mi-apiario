@@ -9,6 +9,9 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
+  backupReminderDaysRemaining,
+  backupReminderDue,
+  markBackupCreated,
   copyBackup,
   formatStorageSize,
   getPersistStatus,
@@ -29,6 +32,8 @@ function DataPage() {
   const [sampleOpen, setSampleOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const storage = getPersistStatus();
+  const backupDue = backupReminderDue();
+  const backupDays = backupReminderDaysRemaining();
 
   function onPickFile(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -86,6 +91,16 @@ function DataPage() {
 
         <Card className="p-5">
           <h2 className="font-display text-lg font-medium">Copia de seguridad</h2>
+          {backupDue ? (
+            <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-50 p-3 text-sm text-amber-950 dark:bg-amber-950/20 dark:text-amber-100" role="alert">
+              <strong>⚠️ Han pasado 15 días desde tu última copia.</strong>
+              <p className="mt-1">Haz una copia para proteger tus datos antes de cambiar de dispositivo o borrar datos del navegador.</p>
+            </div>
+          ) : backupDays !== null ? (
+            <p className="mt-3 text-xs text-muted-foreground">Próximo recordatorio de copia: en {backupDays} días.</p>
+          ) : (
+            <p className="mt-3 text-xs text-muted-foreground">Aún no hay una copia registrada desde esta versión. Haz una para activar el recordatorio cada 15 días.</p>
+          )}
           <p className="mt-1 text-sm text-muted-foreground">
             Exporta un JSON con apiarios, colonias, reinas, acciones, sanidad, producción y
             cierres anuales. Al importar, se sustituyen todos los datos actuales.
@@ -96,7 +111,7 @@ function DataPage() {
               variant="outline"
               onClick={() =>
                 void copyBackup(data)
-                  .then(() => toast.success("JSON copiado"))
+                  .then(() => { markBackupCreated(); toast.success("JSON copiado"); })
                   .catch(() => toast.error("No se pudo copiar"))
               }
             >
