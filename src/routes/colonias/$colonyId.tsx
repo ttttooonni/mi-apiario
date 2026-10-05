@@ -365,7 +365,7 @@ function ColonyPage() {
         ) : null}
       </section>
 
-      <ColonyQrTools colonyId={colony.id} label={`${noun} ${colony.number}`} />
+      <section className="mt-8"><ColonyQrTools colonyId={colony.id} label={`${noun} ${colony.number}`} /></section>
 
       <ActionFormDialog
         open={actionOpen}
