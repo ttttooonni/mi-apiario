@@ -253,6 +253,14 @@ function ColonyPage() {
         ) : null}
       </Card>
 
+      <ColonyTasks
+        colonyId={colony.id}
+        tasks={colonyTasks}
+        onSave={async (task) => { await saveTask.mutateAsync(task); }}
+        onRemove={async (id) => { await removeTask.mutateAsync(id); }}
+        onCompleteAction={async (action) => { await saveAction.mutateAsync(action); }}
+      />
+
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-display text-lg font-medium">Historial</h2>
