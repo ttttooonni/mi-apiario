@@ -77,7 +77,7 @@ function Home() {
           <Card className="mb-4 border-destructive/20 bg-destructive/5 p-4">
             <Link to="/historico" className="flex items-center gap-3">
               <span className="text-2xl">⚠️</span>
-              <span className="min-w-0 flex-1"><span className="block text-xs font-semibold tracking-wide text-destructive uppercase">Temporada {year}</span><span className="block font-display text-xl font-semibold">{data.losses.filter((loss) => loss.year === year).length} pérdidas registradas</span><span className="block text-sm text-muted-foreground">Consulta el histórico y las causas.</span></span>
+              <span className="min-w-0 flex-1"><span className="block text-xs font-semibold tracking-wide text-destructive uppercase">Temporada {year}</span><span className="block font-display text-xl font-semibold">{data.losses.filter((loss) => loss.year === year && loss.kind === "hive").length} colmenas perdidas · {data.losses.filter((loss) => loss.year === year && loss.kind === "nuc").length} núcleos</span><span className="block text-sm text-muted-foreground">Consulta el histórico y las causas.</span></span>
               <ArrowRight className="size-5 shrink-0 text-muted-foreground" />
             </Link>
           </Card>
