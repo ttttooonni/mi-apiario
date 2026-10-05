@@ -51,6 +51,7 @@ export function ApiaryBulkActions({ state: _state, colonies }: { state: AppState
           await saveTask.mutateAsync({
             id: newId(), colonyId: colony.id,
             title: "Pendiente: " + ACTION_LABEL[type].toLowerCase(),
+            actionType: type,
             priority: "normal",
             notes: "Quedó fuera de la acción colectiva del " + date + (notes.trim() ? ". " + notes.trim() : ""),
             createdAt,
