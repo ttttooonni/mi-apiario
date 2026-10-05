@@ -28,6 +28,6 @@ export interface ColonyTask { id: string; colonyId: string; title: string; dueDa
 export interface AppState { apiaries: Apiary[]; colonies: Colony[]; queens: Queen[]; actions: ColonyAction[]; health: HealthRecord[]; production: ProductionRecord[]; yearCloses: YearClose[]; tasks: ColonyTask[]; losses: ColonyLoss[]; }
 export const EMPTY_STATE: AppState = { apiaries: [], colonies: [], queens: [], actions: [], health: [], production: [], yearCloses: [], tasks: [], losses: [] };
 export const DATA_VERSION = 2;
-export const APP_VERSION = "2.2.3";
+export const APP_VERSION = "2.2.4";
 export const APP_ID = "mi-apiario";
 export interface BackupFile { app: typeof APP_ID; version: number; exportedAt: string; data: AppState; }
