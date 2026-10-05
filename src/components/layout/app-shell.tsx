@@ -7,7 +7,7 @@ import { useTutorial } from "@/components/apiary/tutorial";
 import { HiveMark } from "@/components/brand/hive-mark";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { APP_VERSION } from "@/lib/apiary";
+import { APP_BUILD_ID, APP_VERSION } from "@/lib/apiary";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: Home, exact: true },
@@ -35,12 +35,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     async function checkVersion() {
       let seen: string | null = null;
       try {
-        seen = window.localStorage.getItem("mi-apiario:app-version-seen");
+        seen = window.localStorage.getItem("mi-apiario:app-build-seen") ?? window.localStorage.getItem("mi-apiario:app-version-seen");
       } catch {
         // El aviso seguirá funcionando aunque localStorage no esté disponible.
       }
 
       let targetVersion = APP_VERSION;
+      let targetBuildId = APP_BUILD_ID;
 
       try {
         const response = await fetch(`${import.meta.env.BASE_URL}version.json?ts=${Date.now()}`, {
@@ -67,7 +68,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   function dismissUpdate() {
-    try { window.localStorage.setItem("mi-apiario:app-version-seen", updateVersion); } catch { /* best effort */ }
+    try {\n      window.localStorage.setItem("mi-apiario:app-version-seen", updateVersion);\n      window.localStorage.setItem("mi-apiario:app-build-seen", APP_BUILD_ID);\n    } catch { /* best effort */ }
     setUpdateVisible(false);
   }
 
