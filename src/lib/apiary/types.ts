@@ -6,7 +6,7 @@ export type ActionType =
 export type FrameKind = "standard" | "medium";
 export type ProductKind = "honey" | "propolis" | "pollen" | "wax" | "royal_jelly";
 export type QueenColor = "white" | "yellow" | "red" | "green" | "blue";
-export type HealthTopic = "varroa" | "nosema" | "foulbrood" | "chalkbrood" | "hornet" | "surveillance" | "other";
+export type HealthTopic = "varroa" | "inspection" | "nosema" | "foulbrood" | "chalkbrood" | "hornet" | "surveillance" | "other";
 export type HealthKind = "treatment" | "observation" | "sampling";
 
 export interface Apiary {
@@ -28,6 +28,14 @@ export interface ColonyAction {
 export interface HealthRecord {
   id: string; colonyId: string; topic: HealthTopic; kind: HealthKind; date: string;
   product?: string; notes?: string; actionId?: string; createdAt: string;
+  varroaMethod?: string; varroaCount?: number;
+  foodReserve?: "good" | "low" | "very_low";
+  pollenReserve?: "good" | "low" | "absent";
+  feedingNeeded?: boolean; feedingType?: "syrup" | "fondant" | "protein" | "other";
+  feedingAmount?: string;
+  queenSeen?: boolean; broodStatus?: "good" | "regular" | "poor";
+  colonyStrength?: "strong" | "medium" | "weak";
+  behavior?: "calm" | "normal" | "nervous" | "aggressive";
 }
 export interface ProductionRecord {
   id: string; product: ProductKind; date: string; quantity: number; lot: string; notes?: string; createdAt: string;
