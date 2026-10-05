@@ -127,8 +127,6 @@ function ColonyPage() {
 
       {colony.photo ? <img src={colony.photo} alt={`Foto de ${noun.toLowerCase()} ${colony.number}`} className="mb-5 max-h-64 w-full rounded-2xl border object-cover" /> : null}
 
-      <ColonyQrTools colonyId={colony.id} label={`${noun} ${colony.number}`} />
-
       {colony.notes ? (
         <p className="mb-5 max-w-2xl text-sm text-muted-foreground">{colony.notes}</p>
       ) : null}
@@ -317,6 +315,8 @@ function ColonyPage() {
           </Button>
         ) : null}
       </section>
+
+      <ColonyQrTools colonyId={colony.id} label={`${noun} ${colony.number}`} />
 
       <ActionFormDialog
         open={actionOpen}
