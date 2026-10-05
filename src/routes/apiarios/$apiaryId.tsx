@@ -12,6 +12,18 @@ import { Button } from "@/components/ui/button";
 import { ACTION_LABEL, coloniesOf, currentQueen, formatDate, healthOfColony, lastAction, newId, nowIso, queenColorFromDate, QUEEN_COLOR_META, useAppMutations, useNotebook, type AppState, type Colony, type ColonyKind } from "@/lib/apiary";
 
 export const Route = createFileRoute("/apiarios/$apiaryId")({ component: ApiaryDetailPage });
+const QUEEN_GENETICS_LABEL: Record<string, string> = {
+  canaria_black: "Negra canaria",
+  iberian_black: "Negra ibérica",
+  buckfast: "Buckfast",
+  carnica: "Cárnica",
+  ligustica: "Ligústica",
+  caucasica: "Caucásica",
+  hybrid: "Híbrida",
+  other: "Otra",
+  unknown: "Desconocida",
+};
+
 function ApiaryDetailPage() {
   const { apiaryId } = Route.useParams(); const navigate = useNavigate(); const { data } = useNotebook();
   const { saveApiary, saveColony, removeApiary } = useAppMutations();
@@ -44,7 +56,7 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
   const latestHealth = healthOfColony(state, colony.id)[0];
   const queenMeta = queen ? QUEEN_COLOR_META[queenColorFromDate(queen.introducedAt)] : undefined;
   const quickInfo = [
-    queenMeta ? `Reina ${queenMeta.label.toLowerCase()}` : null,
+    queenMeta ? `Reina ${queenMeta.label.toLowerCase()}` : null,\n    queen?.genetics ? `🧬 ${QUEEN_GENETICS_LABEL[queen.genetics] ?? queen.genetics}${queen.line ? ` · ${queen.line}` : ""}` : null,
     latestHealth?.topic === "varroa" && latestHealth.varroaCount !== undefined
       ? `Varroa ${latestHealth.varroaCount}`
       : latestHealth?.topic === "inspection" && latestHealth.feedingNeeded
