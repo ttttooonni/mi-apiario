@@ -365,7 +365,13 @@ function ColonyPage() {
         ) : null}
       </section>
 
-      <section className="mt-8"><ColonyQrTools colonyId={colony.id} label={`${noun} ${colony.number}`} /></section>
+      <section className="mt-8 border-t pt-8" aria-label="6. Código QR">
+        <div className="mb-3">
+          <h2 className="font-display text-lg font-medium">6. Código QR</h2>
+          <p className="text-sm text-muted-foreground">QR siempre al final de la ficha de la colonia.</p>
+        </div>
+        <ColonyQrTools colonyId={colony.id} label={`${noun} ${colony.number}`} />
+      </section>
 
       <ActionFormDialog
         open={actionOpen}
