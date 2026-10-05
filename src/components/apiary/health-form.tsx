@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -35,6 +36,10 @@ import {
   type HealthTopic,
 } from "@/lib/apiary";
 
+function CardSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return <Card className="gap-0 p-4"><h3 className="mb-3 text-sm font-semibold">{title}</h3>{children}</Card>;
+}
+
 export function HealthFormDialog({
   open,
   onOpenChange,
@@ -57,6 +62,17 @@ export function HealthFormDialog({
   const [product, setProduct] = useState<string>(VARROA_PRODUCTS[0]);
   const [customProduct, setCustomProduct] = useState("");
   const [notes, setNotes] = useState("");
+  const [varroaMethod, setVarroaMethod] = useState("Observación");
+  const [varroaCount, setVarroaCount] = useState("");
+  const [foodReserve, setFoodReserve] = useState<HealthRecord["foodReserve"]>("good");
+  const [pollenReserve, setPollenReserve] = useState<HealthRecord["pollenReserve"]>("good");
+  const [feedingNeeded, setFeedingNeeded] = useState(false);
+  const [feedingType, setFeedingType] = useState<HealthRecord["feedingType"]>("syrup");
+  const [feedingAmount, setFeedingAmount] = useState("");
+  const [queenSeen, setQueenSeen] = useState<boolean | undefined>(undefined);
+  const [broodStatus, setBroodStatus] = useState<HealthRecord["broodStatus"]>("good");
+  const [colonyStrength, setColonyStrength] = useState<HealthRecord["colonyStrength"]>("strong");
+  const [behavior, setBehavior] = useState<HealthRecord["behavior"]>("calm");
   const [wholeApiary, setWholeApiary] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -72,6 +88,17 @@ export function HealthFormDialog({
     setProduct(VARROA_PRODUCTS[0]);
     setCustomProduct("");
     setNotes("");
+    setVarroaMethod("Observación");
+    setVarroaCount("");
+    setFoodReserve("good");
+    setPollenReserve("good");
+    setFeedingNeeded(false);
+    setFeedingType("syrup");
+    setFeedingAmount("");
+    setQueenSeen(undefined);
+    setBroodStatus("good");
+    setColonyStrength("strong");
+    setBehavior("calm");
     setWholeApiary(false);
   }, [open, presetColonyId, presetTopic, state.colonies]);
 
@@ -99,6 +126,17 @@ export function HealthFormDialog({
         date,
         product: needsProduct ? resolvedProduct : undefined,
         notes: notes.trim() || undefined,
+        varroaMethod: topic === "varroa" || topic === "inspection" ? varroaMethod : undefined,
+        varroaCount: topic === "varroa" || topic === "inspection" ? (varroaCount === "" ? undefined : Number(varroaCount)) : undefined,
+        foodReserve: topic === "inspection" ? foodReserve : undefined,
+        pollenReserve: topic === "inspection" ? pollenReserve : undefined,
+        feedingNeeded: topic === "inspection" ? feedingNeeded : undefined,
+        feedingType: topic === "inspection" && feedingNeeded ? feedingType : undefined,
+        feedingAmount: topic === "inspection" && feedingNeeded ? (feedingAmount.trim() || undefined) : undefined,
+        queenSeen: topic === "inspection" ? queenSeen : undefined,
+        broodStatus: topic === "inspection" ? broodStatus : undefined,
+        colonyStrength: topic === "inspection" ? colonyStrength : undefined,
+        behavior: topic === "inspection" ? behavior : undefined,
         createdAt,
       }));
       await onSubmit(rows);
@@ -194,6 +232,89 @@ export function HealthFormDialog({
               required
             />
           </Field>
+
+          {(topic === "varroa" || topic === "inspection") ? (
+            <CardSection title="🕷️ Varroa">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Método">
+                  <Select value={varroaMethod} onValueChange={setVarroaMethod}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Observación">Observación</SelectItem>
+                      <SelectItem value="Caída natural">Caída natural</SelectItem>
+                      <SelectItem value="Azúcar glas">Azúcar glas</SelectItem>
+                      <SelectItem value="Alcohol">Alcohol</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Ácaros contados" hint="Opcional">
+                  <Input type="number" min="0" step="1" value={varroaCount} onChange={(e) => setVarroaCount(e.target.value)} placeholder="Ej. 3" />
+                </Field>
+              </div>
+            </CardSection>
+          ) : null}
+
+          {topic === "inspection" ? (
+            <CardSection title="🍯 Alimentación">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Reservas de miel">
+                  <Select value={foodReserve} onValueChange={(v) => setFoodReserve(v as HealthRecord["foodReserve"])}>
+                    <SelectTrigger><SelectValue /></SelectTrigger><SelectContent>
+                      <SelectItem value="good">Buenas</SelectItem><SelectItem value="low">Escasas</SelectItem><SelectItem value="very_low">Muy escasas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Reservas de polen">
+                  <Select value={pollenReserve} onValueChange={(v) => setPollenReserve(v as HealthRecord["pollenReserve"])}>
+                    <SelectTrigger><SelectValue /></SelectTrigger><SelectContent>
+                      <SelectItem value="good">Buenas</SelectItem><SelectItem value="low">Escasas</SelectItem><SelectItem value="absent">Ausentes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+              <label className="mt-3 flex items-center gap-2 text-sm">
+                <input type="checkbox" className="size-4 accent-primary" checked={feedingNeeded} onChange={(e) => setFeedingNeeded(e.target.checked)} />
+                Necesita alimentación
+              </label>
+              {feedingNeeded ? <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <Field label="Tipo">
+                  <Select value={feedingType} onValueChange={(v) => setFeedingType(v as HealthRecord["feedingType"])}>
+                    <SelectTrigger><SelectValue /></SelectTrigger><SelectContent>
+                      <SelectItem value="syrup">Jarabe</SelectItem><SelectItem value="fondant">Fondant</SelectItem><SelectItem value="protein">Proteína</SelectItem><SelectItem value="other">Otro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Cantidad" hint="Opcional"><Input value={feedingAmount} onChange={(e) => setFeedingAmount(e.target.value)} placeholder="Ej. 1 kg" /></Field>
+              </div> : null}
+            </CardSection>
+          ) : null}
+
+          {topic === "inspection" ? (
+            <CardSection title="👀 Observación">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Reina">
+                  <Select value={queenSeen === undefined ? "" : queenSeen ? "yes" : "no"} onValueChange={(v) => setQueenSeen(v === "yes")}>
+                    <SelectTrigger><SelectValue placeholder="Sin indicar" /></SelectTrigger><SelectContent><SelectItem value="yes">Vista</SelectItem><SelectItem value="no">No vista</SelectItem></SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Cría">
+                  <Select value={broodStatus} onValueChange={(v) => setBroodStatus(v as HealthRecord["broodStatus"])}>
+                    <SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="good">Buena</SelectItem><SelectItem value="regular">Regular</SelectItem><SelectItem value="poor">Mala</SelectItem></SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Fuerza de colonia">
+                  <Select value={colonyStrength} onValueChange={(v) => setColonyStrength(v as HealthRecord["colonyStrength"])}>
+                    <SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="strong">Fuerte</SelectItem><SelectItem value="medium">Media</SelectItem><SelectItem value="weak">Débil</SelectItem></SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Comportamiento">
+                  <Select value={behavior} onValueChange={(v) => setBehavior(v as HealthRecord["behavior"])}>
+                    <SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="calm">Tranquilas</SelectItem><SelectItem value="normal">Normal</SelectItem><SelectItem value="nervous">Nerviosas</SelectItem><SelectItem value="aggressive">Agresivas</SelectItem></SelectContent>
+                  </Select>
+                </Field>
+              </div>
+            </CardSection>
+          ) : null}
 
           {needsProduct ? (
             <>
