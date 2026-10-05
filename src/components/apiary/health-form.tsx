@@ -277,6 +277,11 @@ export function HealthFormDialog({
                   </div>
                 );
               })()}
+              <div className="mt-3 rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground">
+                <p className="font-medium text-foreground">Referencia orientativa</p>
+                <p>🟢 &lt;1 % · 🟡 1–&lt;2 % · 🟠 2–&lt;3 % · 🔴 ≥3 %</p>
+                <p className="mt-1">Los umbrales pueden variar según época, método y situación de la colonia.</p>
+              </div>
             </CardSection>
           ) : null}
 
