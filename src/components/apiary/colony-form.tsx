@@ -20,9 +20,9 @@ export function ColonyFormDialog({ open, onOpenChange, kind, initial, onSubmit }
   onSubmit: (values: { number: string; notes?: string; photo?: string; temperament?: Colony["temperament"]; productivity?: Colony["productivity"]; swarmingTendency?: Colony["swarmingTendency"]; hygiene?: Colony["hygiene"]; queenDominance?: Colony["queenDominance"] }) => Promise<void>;
 }) {
   const [number, setNumber] = useState(""); const [notes, setNotes] = useState(""); const [photo, setPhoto] = useState<string | undefined>();
-  const [temperament, setTemperament] = useState<Colony["temperament"]>(""); const [productivity, setProductivity] = useState<Colony["productivity"]>("");
-  const [swarmingTendency, setSwarmingTendency] = useState<Colony["swarmingTendency"]>(""); const [hygiene, setHygiene] = useState<Colony["hygiene"]>("");
-  const [queenDominance, setQueenDominance] = useState<Colony["queenDominance"]>("");
+  const [temperament, setTemperament] = useState<Colony["temperament"] | "">(""); const [productivity, setProductivity] = useState<Colony["productivity"] | "">("");
+  const [swarmingTendency, setSwarmingTendency] = useState<Colony["swarmingTendency"] | "">(""); const [hygiene, setHygiene] = useState<Colony["hygiene"] | "">("");
+  const [queenDominance, setQueenDominance] = useState<Colony["queenDominance"] | "">("");
   const [busy, setBusy] = useState(false); const [photoError, setPhotoError] = useState("");
   const noun = COLONY_KIND_LABEL[kind].toLowerCase();
   useEffect(() => { if (!open) return; setNumber(initial?.number ?? ""); setNotes(initial?.notes ?? ""); setPhoto(initial?.photo); setTemperament(initial?.temperament ?? ""); setProductivity(initial?.productivity ?? ""); setSwarmingTendency(initial?.swarmingTendency ?? ""); setHygiene(initial?.hygiene ?? ""); setQueenDominance(initial?.queenDominance ?? ""); setPhotoError(""); }, [open, initial]);
