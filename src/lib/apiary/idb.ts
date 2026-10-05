@@ -3,6 +3,7 @@ import { makePersistedState, migratePersistedState, PERSISTED_VERSION } from "./
 
 const LS_KEY = "mi-apiario:v1";
 const PRE_MIGRATION_KEY = "mi-apiario:pre-migration:v1";
+const PRE_RESTORE_KEY = "mi-apiario:pre-restore:v1";
 /** Typical browser localStorage ceiling is ~5 MB. Warn before we hit it. */
 const SOFT_LIMIT_BYTES = 3_500_000;
 const HARD_HINT_BYTES = 5_000_000;
@@ -197,6 +198,8 @@ export async function restoreFromBackup(state: AppState): Promise<void> {
   hydrate();
   if (typeof window !== "undefined") {
     try {
+      const currentRaw = window.localStorage.getItem(LS_KEY);
+      if (currentRaw) window.localStorage.setItem(PRE_RESTORE_KEY, currentRaw);
       window.localStorage.setItem(LS_KEY, JSON.stringify(makePersistedState(state)));
     } catch {
       lastFailed = true;
