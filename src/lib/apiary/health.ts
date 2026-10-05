@@ -138,5 +138,13 @@ export function healthSummary(row: HealthRecord): string | null {
   const bits: string[] = [];
   if (row.kind !== "treatment") bits.push(HEALTH_KIND_LABEL[row.kind]);
   if (row.product) bits.push(row.product);
+  if (row.varroaCount !== undefined) bits.push(`Varroa: ${row.varroaCount}`);
+  if (row.foodReserve) bits.push(`Miel: ${({ good: "buena", low: "escasa", very_low: "muy escasa" } as const)[row.foodReserve]}`);
+  if (row.pollenReserve) bits.push(`Polen: ${({ good: "bueno", low: "escaso", absent: "ausente" } as const)[row.pollenReserve]}`);
+  if (row.feedingNeeded) bits.push(`Alimentación: ${row.feedingType === "syrup" ? "jarabe" : row.feedingType === "fondant" ? "fondant" : row.feedingType === "protein" ? "proteína" : "otro"}${row.feedingAmount ? ` (${row.feedingAmount})` : ""}`);
+  if (row.queenSeen !== undefined) bits.push(`Reina: ${row.queenSeen ? "vista" : "no vista"}`);
+  if (row.broodStatus) bits.push(`Cría: ${({ good: "buena", regular: "regular", poor: "mala" } as const)[row.broodStatus]}`);
+  if (row.colonyStrength) bits.push(`Fuerza: ${({ strong: "fuerte", medium: "media", weak: "débil" } as const)[row.colonyStrength]}`);
+  if (row.behavior) bits.push(`Comportamiento: ${({ calm: "tranquilas", normal: "normal", nervous: "nerviosas", aggressive: "agresivas" } as const)[row.behavior]}`);
   return bits.length ? bits.join(" · ") : null;
 }
