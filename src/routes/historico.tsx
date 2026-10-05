@@ -11,6 +11,7 @@ import {
   formatKg,
   hiveCount,
   nucCount,
+  COLONY_LOSS_CAUSE_LABEL,
   PRODUCT_LABEL,
   PRODUCT_ORDER,
   todayISO,
@@ -78,6 +79,14 @@ function HistoryPage() {
               {row.closed?.notes ? (
                 <p className="mt-3 text-sm text-muted-foreground">{row.closed.notes}</p>
               ) : null}
+
+              {(() => {
+                const losses = data.losses.filter((loss) => loss.year === row.year);
+                if (!losses.length) return null;
+                const causes = new Map<string, number>();
+                for (const loss of losses) causes.set(loss.cause, (causes.get(loss.cause) ?? 0) + 1);
+                return <div className="mt-4 rounded-xl border border-destructive/15 bg-destructive/5 p-3"><p className="font-medium">Pérdidas: {losses.length}</p><p className="mt-1 text-sm text-muted-foreground">{[...causes.entries()].map(([cause, count]) => `${COLONY_LOSS_CAUSE_LABEL[cause as keyof typeof COLONY_LOSS_CAUSE_LABEL]}: ${count}`).join(" · ")}</p></div>;
+              })()}
 
               {!row.isCurrent && !row.closed ? (
                 <Button
