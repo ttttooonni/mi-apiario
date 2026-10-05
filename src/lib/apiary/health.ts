@@ -46,6 +46,43 @@ export const VARROA_PRODUCTS = [
   "Tau-fluvalinato",
 ] as const;
 
+export type VarroaLevel = "low" | "watch" | "attention" | "high";
+
+export const VARROA_LEVEL_LABEL: Record<VarroaLevel, string> = {
+  low: "Baja",
+  watch: "Vigilancia",
+  attention: "Atención",
+  high: "Alta",
+};
+
+export const VARROA_LEVEL_CLASS: Record<VarroaLevel, string> = {
+  low: "border-emerald-500/50 bg-emerald-50/60",
+  watch: "border-yellow-500/60 bg-yellow-50/70",
+  attention: "border-orange-500/70 bg-orange-50/70",
+  high: "border-red-500/70 bg-red-50/70",
+};
+
+export function varroaInfestationPercent(row: HealthRecord): number | undefined {
+  if (row.varroaCount === undefined || row.varroaSampleSize === undefined || row.varroaSampleSize <= 0) return undefined;
+  return (row.varroaCount / row.varroaSampleSize) * 100;
+}
+
+export function varroaLevel(percent: number | undefined): VarroaLevel | undefined {
+  if (percent === undefined || !Number.isFinite(percent)) return undefined;
+  if (percent < 1) return "low";
+  if (percent < 2) return "watch";
+  if (percent < 3) return "attention";
+  return "high";
+}
+
+export function latestVarroaCheck(state: AppState, colonyId: string): HealthRecord | undefined {
+  return healthOfColony(state, colonyId).find(
+    (row) => (row.topic === "varroa" || row.topic === "inspection") &&
+      row.varroaCount !== undefined &&
+      row.varroaSampleSize !== undefined,
+  );
+}
+
 const LEGACY_PREFIX = "hlth-";
 
 const unifiedCache = new WeakMap<AppState, HealthRecord[]>();
