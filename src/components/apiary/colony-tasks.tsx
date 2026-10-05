@@ -61,7 +61,7 @@ export function ColonyTasks({ colonyId, tasks, onSave, onRemove, onCompleteActio
             {task.dueDate ? <p className="mt-1 text-sm text-muted-foreground">Fecha: {new Date(`${task.dueDate}T12:00:00`).toLocaleDateString("es-ES")}</p> : null}
             {task.notes ? <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{task.notes}</p> : null}
           </div>
-          <button type="button" className="text-sm text-muted-foreground hover:text-destructive" onClick={() => { if (window.confirm("¿Eliminar esta tarea?")) void onRemove(task.id); }}>Eliminar</button>
+          <button type="button" aria-label={`Eliminar tarea: ${task.title}`} title="Eliminar tarea" className="shrink-0 rounded-lg px-2 py-1 text-lg leading-none text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => { if (window.confirm("¿Eliminar esta tarea?")) void onRemove(task.id); }}>✕</button>
         </li>)}
       </ul> : <p className="py-2 text-sm text-muted-foreground">No hay tareas pendientes para esta colonia.</p>}
       <form onSubmit={(event) => void addTask(event)} className="mt-4 grid gap-3 border-t pt-4">
@@ -73,7 +73,7 @@ export function ColonyTasks({ colonyId, tasks, onSave, onRemove, onCompleteActio
         <label className="grid gap-1 text-sm font-medium">Nota (opcional) <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Detalles para cuando vuelvas al apiario" /></label>
         <div><Button type="submit" disabled={busy || !title.trim()}>{busy ? "Guardando…" : "Añadir tarea"}</Button></div>
       </form>
-      {done.length ? <details className="mt-4 border-t pt-3"><summary className="cursor-pointer text-sm font-medium text-muted-foreground">Completadas recientes ({done.length})</summary><ul className="mt-2 space-y-2">{done.map((task) => <li key={task.id} className="flex items-start justify-between gap-2 text-sm"><span className="text-muted-foreground line-through">{task.title}</span><button type="button" className="text-muted-foreground hover:text-destructive" onClick={() => { if (window.confirm("¿Eliminar esta tarea completada?")) void onRemove(task.id); }}>Eliminar</button></li>)}</ul></details> : null}
+      {done.length ? <details className="mt-4 border-t pt-3"><summary className="cursor-pointer text-sm font-medium text-muted-foreground">Completadas recientes ({done.length})</summary><ul className="mt-2 space-y-2">{done.map((task) => <li key={task.id} className="flex items-start justify-between gap-2 text-sm"><span className="text-muted-foreground line-through">{task.title}</span><button type="button" aria-label={`Eliminar tarea completada: ${task.title}`} title="Eliminar tarea" className="shrink-0 rounded-lg px-2 py-1 text-lg leading-none text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => { if (window.confirm("¿Eliminar esta tarea completada?")) void onRemove(task.id); }}>✕</button></li>)}</ul></details> : null}
     </Card>
   </section>;
 }
