@@ -34,6 +34,9 @@ import {
   type HealthKind,
   type HealthRecord,
   type HealthTopic,
+  varroaInfestationPercent,
+  varroaLevel,
+  VARROA_LEVEL_LABEL,
 } from "@/lib/apiary";
 
 function CardSection({ title, children }: { title: string; children: React.ReactNode }) {
@@ -64,6 +67,7 @@ export function HealthFormDialog({
   const [notes, setNotes] = useState("");
   const [varroaMethod, setVarroaMethod] = useState("Observación");
   const [varroaCount, setVarroaCount] = useState("");
+  const [varroaSampleSize, setVarroaSampleSize] = useState("");
   const [foodReserve, setFoodReserve] = useState<HealthRecord["foodReserve"]>("good");
   const [pollenReserve, setPollenReserve] = useState<HealthRecord["pollenReserve"]>("good");
   const [feedingNeeded, setFeedingNeeded] = useState(false);
@@ -91,6 +95,7 @@ export function HealthFormDialog({
     setNotes("");
     setVarroaMethod("Observación");
     setVarroaCount("");
+    setVarroaSampleSize("");
     setFoodReserve("good");
     setPollenReserve("good");
     setFeedingNeeded(false);
@@ -130,6 +135,7 @@ export function HealthFormDialog({
         notes: notes.trim() || undefined,
         varroaMethod: topic === "varroa" || topic === "inspection" ? varroaMethod : undefined,
         varroaCount: topic === "varroa" || topic === "inspection" ? (varroaCount === "" ? undefined : Number(varroaCount)) : undefined,
+        varroaSampleSize: topic === "varroa" || topic === "inspection" ? (varroaSampleSize === "" ? undefined : Number(varroaSampleSize)) : undefined,
         foodReserve: topic === "inspection" ? foodReserve : undefined,
         pollenReserve: topic === "inspection" ? pollenReserve : undefined,
         feedingNeeded: topic === "inspection" ? feedingNeeded : undefined,
@@ -250,10 +256,27 @@ export function HealthFormDialog({
                     </SelectContent>
                   </Select>
                 </Field>
-                <Field label="Ácaros contados" hint="Opcional">
-                  <Input type="number" min="0" step="1" value={varroaCount} onChange={(e) => setVarroaCount(e.target.value)} placeholder="Ej. 3" />
+                <Field label="Ácaros encontrados" hint="Opcional">
+                  <Input type="number" min="0" step="1" value={varroaCount} onChange={(e) => setVarroaCount(e.target.value)} placeholder="Ej. 9" />
+                </Field>
+                <Field label="Abejas muestreadas" hint="Necesario para calcular %">
+                  <Input type="number" min="1" step="1" value={varroaSampleSize} onChange={(e) => setVarroaSampleSize(e.target.value)} placeholder="Ej. 300" />
                 </Field>
               </div>
+              {(() => {
+                const count = varroaCount === "" ? undefined : Number(varroaCount);
+                const sample = varroaSampleSize === "" ? undefined : Number(varroaSampleSize);
+                const result = varroaInfestationPercent({ varroaCount: count, varroaSampleSize: sample } as HealthRecord);
+                const level = varroaLevel(result);
+                if (result === undefined || !level) return <p className="mt-3 text-xs text-muted-foreground">Fórmula: ácaros encontrados ÷ abejas muestreadas × 100.</p>;
+                return (
+                  <div className="mt-3 rounded-xl border p-3">
+                    <p className="text-sm text-muted-foreground">Resultado de infestación</p>
+                    <p className="mt-1 text-2xl font-bold">{result.toFixed(1)} % <span className="text-sm font-medium">· {VARROA_LEVEL_LABEL[level]}</span></p>
+                    <p className="text-xs text-muted-foreground">{count} ácaros / {sample} abejas = {result.toFixed(1)} ácaros por 100 abejas</p>
+                  </div>
+                );
+              })()}
             </CardSection>
           ) : null}
 
