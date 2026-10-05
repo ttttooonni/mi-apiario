@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ApiaryFormDialog } from "@/components/apiary/apiary-form";
+import { ApiaryBulkActions } from "@/components/apiary/apiary-bulk-actions";
 import { ColonyFormDialog } from "@/components/apiary/colony-form";
 import { ColonyKindBadge } from "@/components/apiary/colony-kind-badge";
 import { ConfirmDelete } from "@/components/apiary/confirm-delete";
@@ -36,6 +37,7 @@ function ApiaryDetailPage() {
     <PageHeader title={apiary.name} description={apiary.location || undefined} backTo="/apiarios" backLabel="Apiarios" actions={<><Button variant="outline" className="min-h-11" onClick={() => setEditOpen(true)}>Editar</Button><Button variant="outline" className="min-h-11" onClick={() => setDeleteOpen(true)}>Eliminar</Button></>} />
     {apiary.photo && <img src={apiary.photo} alt={`Foto del apiario ${apiary.name}`} className="max-h-64 w-full rounded-2xl border object-cover" />}
     {apiary.notes && <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">{apiary.notes}</p>}
+    {colonies.length > 0 ? <ApiaryBulkActions state={data} colonies={colonies} /> : null}
     <ColonySection title="Colmenas" empty="Todavía no hay colmenas en este apiario." actionLabel="Añadir colmena" colonies={hives} onAdd={() => { setColonyKind("hive"); setColonyOpen(true); }} state={data} />
     <ColonySection title="Núcleos" empty="Todavía no hay núcleos en este apiario." actionLabel="Añadir núcleo" colonies={nucs} onAdd={() => { setColonyKind("nuc"); setColonyOpen(true); }} state={data} />
     <ApiaryFormDialog open={editOpen} onOpenChange={setEditOpen} initial={apiary} onSubmit={async (values) => { await saveApiary.mutateAsync({ ...apiary, ...values, updatedAt: nowIso() }); toast.success("Apiario actualizado"); }} />
