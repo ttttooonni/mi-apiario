@@ -27,10 +27,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { show } = useTutorial();
   const [updateVisible, setUpdateVisible] = useState(false);
+  const [updateVersion, setUpdateVersion] = useState(APP_VERSION);
 
   useEffect(() => {
     try {
       const seen = window.localStorage.getItem("mi-apiario:app-version-seen");
+      setUpdateVersion(APP_VERSION);
       setUpdateVisible(seen !== APP_VERSION);
     } catch {
       setUpdateVisible(false);
@@ -38,7 +40,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   function dismissUpdate() {
-    try { window.localStorage.setItem("mi-apiario:app-version-seen", APP_VERSION); } catch { /* best effort */ }
+    try { window.localStorage.setItem("mi-apiario:app-version-seen", updateVersion); } catch { /* best effort */ }
     setUpdateVisible(false);
   }
 
@@ -89,7 +91,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="text-lg" aria-hidden="true">🆕</span>
             <div className="min-w-0 flex-1">
               <p className="font-semibold">Nueva versión de Mi Apiario</p>
-              <p className="mt-1 text-sm text-muted-foreground">Versión {APP_VERSION}. Incluye mejoras y conserva tus datos locales.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Versión {updateVersion}. Incluye mejoras y conserva tus datos locales.</p>
               <p className="mt-1 text-xs text-muted-foreground">Si no ves los cambios, recarga la aplicación.</p>
             </div>
             <div className="flex shrink-0 gap-1"><Button type="button" variant="ghost" size="sm" onClick={dismissUpdate}>Después</Button><Button type="button" size="sm" onClick={() => window.location.reload()}>Actualizar</Button></div>
