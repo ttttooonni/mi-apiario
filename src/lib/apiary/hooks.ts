@@ -88,6 +88,16 @@ export function useAppMutations() {
     onSuccess: invalidate,
   });
 
+  const saveLoss = useMutation({
+    mutationFn: (row: AppState["losses"][number]) => putRecord("losses", row),
+    onSuccess: invalidate,
+  });
+
+  const removeLoss = useMutation({
+    mutationFn: (id: string) => deleteRecord("losses", id),
+    onSuccess: invalidate,
+  });
+
   const removeTask = useMutation({
     mutationFn: (id: string) => deleteRecord("tasks", id),
     onSuccess: invalidate,
@@ -163,6 +173,8 @@ export function useAppMutations() {
     saveYearClose,
     saveTask,
     removeTask,
+    saveLoss,
+    removeLoss,
     saveHealth,
     saveHealthMany,
     removeHealthRecord,
