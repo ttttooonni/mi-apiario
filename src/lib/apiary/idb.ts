@@ -16,6 +16,7 @@ export const STORE_NAMES = [
   "production",
   "yearCloses",
   "tasks",
+  "losses",
 ] as const;
 
 type StoreName = (typeof STORE_NAMES)[number];
@@ -29,6 +30,7 @@ const STORE_KEYS: Record<StoreName, keyof AppState> = {
   production: "production",
   yearCloses: "yearCloses",
   tasks: "tasks",
+  losses: "losses",
 };
 
 export type PersistStatus = {
@@ -60,6 +62,7 @@ function emptyClone(): AppState {
     production: [],
     yearCloses: [],
     tasks: [],
+    losses: [],
   };
 }
 
@@ -246,6 +249,9 @@ export async function deleteRecord(store: StoreName, id: IDBValidKey): Promise<v
     case "tasks":
       cache.tasks = cache.tasks.filter((item) => item.id !== id);
       break;
+    case "losses":
+      cache.losses = cache.losses.filter((item) => item.id !== id);
+      break;
   }
   touch();
 }
@@ -261,6 +267,7 @@ export async function deleteApiaryCascade(_state: AppState, apiaryId: string): P
     cache.actions = cache.actions.filter((item) => !colonyIds.has(item.colonyId));
     cache.health = cache.health.filter((item) => !colonyIds.has(item.colonyId));
     cache.tasks = cache.tasks.filter((item) => !colonyIds.has(item.colonyId));
+    cache.losses = cache.losses.filter((item) => item.apiaryId !== apiaryId);
     persistDirty = true;
   });
 }
