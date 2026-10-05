@@ -98,11 +98,12 @@ function loadFromLocalStorage(): AppState {
     storageCorrupt = false;
     lastFailed = false;
     return migrated.state;
-  } catch {
-    // Nunca sustituimos datos ilegibles por un cuaderno vacío.
+  } catch (error) {
+    // Nunca sustituimos datos ilegibles por un cuaderno vacío: propagamos el error
+    // para que la interfaz pueda informar y el usuario pueda recuperar su copia.
     storageCorrupt = true;
     lastFailed = true;
-    return emptyClone();
+    throw error instanceof Error ? error : new Error("No se pudieron leer los datos guardados.");
   }
 }
 
@@ -267,7 +268,7 @@ export async function deleteApiaryCascade(_state: AppState, apiaryId: string): P
     cache.actions = cache.actions.filter((item) => !colonyIds.has(item.colonyId));
     cache.health = cache.health.filter((item) => !colonyIds.has(item.colonyId));
     cache.tasks = cache.tasks.filter((item) => !colonyIds.has(item.colonyId));
-    cache.losses = cache.losses.filter((item) => item.apiaryId !== apiaryId);
+    // Las pérdidas forman parte del histórico y nunca se borran al eliminar un apiario.
     persistDirty = true;
   });
 }
