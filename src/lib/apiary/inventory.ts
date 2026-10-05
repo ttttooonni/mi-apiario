@@ -11,7 +11,7 @@ export interface ColonyInventory {
  * mutable counters that can overwrite one another. Negative totals are kept
  * visible so inconsistent historical records are not silently hidden.
  */
-export function inventoryForColony(actions: ColonyAction[], colonyId: string): ColonyInventory {
+export function inventoryForColony(actions: ColonyAction[], colonyId: string, adjustments?: { standardFrames?: number; mediumFrames?: number; supers?: number }): ColonyInventory {
   const inventory: ColonyInventory = { standardFrames: 0, mediumFrames: 0, supers: 0 };
 
   for (const action of actions) {
@@ -31,6 +31,10 @@ export function inventoryForColony(actions: ColonyAction[], colonyId: string): C
       inventory.supers += sign * (action.supersQty ?? 1);
     }
   }
+
+  inventory.standardFrames += adjustments?.standardFrames ?? 0;
+  inventory.mediumFrames += adjustments?.mediumFrames ?? 0;
+  inventory.supers += adjustments?.supers ?? 0;
 
   return inventory;
 }
