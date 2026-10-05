@@ -78,7 +78,8 @@ export async function removeAction(id: string): Promise<void> {
     const linked = (state.health ?? []).filter((item) => item.actionId === id);
     await deleteRecord("actions", id);
     for (const row of linked) {
-      const { actionId: _actionId, ...health } = row;
+      const health = { ...row };
+      delete health.actionId;
       await putRecord("health", health);
     }
   });
