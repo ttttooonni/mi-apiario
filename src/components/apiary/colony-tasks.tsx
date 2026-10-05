@@ -39,7 +39,7 @@ export function ColonyTasks({ colonyId, tasks, onSave, onRemove, onCompleteActio
     try {
       const completedAt = new Date().toISOString();
       if (task.actionType && onCompleteAction) {
-        await onCompleteAction({ id: newId(), colonyId, type: task.actionType, date: task.dueDate || completedAt.slice(0, 10), notes: task.notes, createdAt: completedAt });
+        await onCompleteAction({ id: newId(), colonyId, type: task.actionType, date: task.dueDate || completedAt.slice(0, 10), notes: task.notes, treatmentProduct: task.actionTreatmentProduct, framesKind: task.actionFramesKind, framesQty: task.actionFramesQty, supersQty: task.actionSupersQty, createdAt: completedAt });
       }
       await onSave({ ...task, completedAt });
       toast.success(task.actionType ? "Tarea completada y acción registrada" : "Tarea completada");
