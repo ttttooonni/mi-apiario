@@ -256,10 +256,10 @@ export function HealthFormDialog({
                     </SelectContent>
                   </Select>
                 </Field>
-                <Field label="Ácaros encontrados" hint="Opcional">
+                <Field label="Ácaros contados" hint="Número de ácaros encontrados">
                   <Input type="number" min="0" step="1" value={varroaCount} onChange={(e) => setVarroaCount(e.target.value)} placeholder="Ej. 9" />
                 </Field>
-                <Field label="Abejas muestreadas" hint="Necesario para calcular %">
+                <Field label="Abejas muestreadas" hint="Número de abejas examinadas">
                   <Input type="number" min="1" step="1" value={varroaSampleSize} onChange={(e) => setVarroaSampleSize(e.target.value)} placeholder="Ej. 300" />
                 </Field>
               </div>
@@ -268,20 +268,33 @@ export function HealthFormDialog({
                 const sample = varroaSampleSize === "" ? undefined : Number(varroaSampleSize);
                 const result = varroaInfestationPercent({ varroaCount: count, varroaSampleSize: sample } as HealthRecord);
                 const level = varroaLevel(result);
-                if (result === undefined || !level) return <p className="mt-3 text-xs text-muted-foreground">Fórmula: ácaros encontrados ÷ abejas muestreadas × 100.</p>;
                 return (
-                  <div className="mt-3 rounded-xl border p-3">
-                    <p className="text-sm text-muted-foreground">Resultado de infestación</p>
-                    <p className="mt-1 text-2xl font-bold">{result.toFixed(1)} % <span className="text-sm font-medium">· {VARROA_LEVEL_LABEL[level]}</span></p>
-                    <p className="text-xs text-muted-foreground">{count} ácaros / {sample} abejas = {result.toFixed(1)} ácaros por 100 abejas</p>
-                  </div>
+                  <>
+                    <div className="mt-3 rounded-xl border bg-card p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Resultado automático</p>
+                      {result !== undefined && level ? (
+                        <>
+                          <div className="mt-2 flex items-end justify-between gap-3">
+                            <div>
+                              <p className="text-3xl font-bold tabular-nums">{result.toFixed(1)} %</p>
+                              <p className="mt-1 text-sm text-muted-foreground">{count} ácaros ÷ {sample} abejas × 100</p>
+                            </div>
+                            <span className="rounded-full border px-3 py-1.5 text-sm font-semibold">{VARROA_LEVEL_LABEL[level]}</span>
+                          </div>
+                          <p className="mt-2 text-xs text-muted-foreground">Infestación: {result.toFixed(1)} ácaros por cada 100 abejas muestreadas.</p>
+                        </>
+                      ) : (
+                        <p className="mt-1 text-sm text-muted-foreground">Introduce los ácaros contados y las abejas muestreadas para calcular automáticamente la infestación.</p>
+                      )}
+                    </div>
+                    <div className="mt-3 rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground">
+                      <p className="font-medium text-foreground">Nivel orientativo</p>
+                      <p>🟢 Baja &lt;1 % · 🟡 Vigilancia 1–&lt;2 % · 🟠 Atención 2–&lt;3 % · 🔴 Alta ≥3 %</p>
+                      <p className="mt-1">Los umbrales pueden variar según época, método y situación de la colonia.</p>
+                    </div>
+                  </>
                 );
               })()}
-              <div className="mt-3 rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground">
-                <p className="font-medium text-foreground">Referencia orientativa</p>
-                <p>🟢 &lt;1 % · 🟡 1–&lt;2 % · 🟠 2–&lt;3 % · 🔴 ≥3 %</p>
-                <p className="mt-1">Los umbrales pueden variar según época, método y situación de la colonia.</p>
-              </div>
             </CardSection>
           ) : null}
 
