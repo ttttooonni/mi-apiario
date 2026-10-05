@@ -4,15 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { ColonyTask, TaskPriority } from "@/lib/apiary/types";
+import { ACTION_LABEL, newId, nowIso, type ColonyTask, type TaskPriority, type ColonyAction } from "@/lib/apiary";
 
 const PRIORITY_LABEL: Record<TaskPriority, string> = { high: "Alta", normal: "Normal", low: "Baja" };
 
-export function ColonyTasks({ colonyId, tasks, onSave, onRemove }: {
+export function ColonyTasks({ colonyId, tasks, onSave, onRemove, onCompleteAction }: {
   colonyId: string;
   tasks: ColonyTask[];
   onSave: (task: ColonyTask) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
+  onCompleteAction?: (action: ColonyAction) => Promise<void>;
 }) {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -35,7 +36,14 @@ export function ColonyTasks({ colonyId, tasks, onSave, onRemove }: {
   }
 
   async function complete(task: ColonyTask) {
-    try { await onSave({ ...task, completedAt: new Date().toISOString() }); toast.success("Tarea completada"); }
+    try {
+      const completedAt = new Date().toISOString();
+      if (task.actionType && onCompleteAction) {
+        await onCompleteAction({ id: newId(), colonyId, type: task.actionType, date: task.dueDate || completedAt.slice(0, 10), notes: task.notes, createdAt: completedAt });
+      }
+      await onSave({ ...task, completedAt });
+      toast.success(task.actionType ? "Tarea completada y acción registrada" : "Tarea completada");
+    }
     catch { toast.error("No se pudo actualizar la tarea"); }
   }
 
@@ -49,7 +57,7 @@ export function ColonyTasks({ colonyId, tasks, onSave, onRemove }: {
         {active.map((task) => <li key={task.id} className="flex items-start gap-3 py-3 first:pt-0">
           <input type="checkbox" aria-label={`Completar: ${task.title}`} className="mt-1 size-5 accent-primary" onChange={() => void complete(task)} />
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2"><p className="font-medium">{task.title}</p><span className={`rounded-full px-2 py-0.5 text-xs ${task.priority === "high" ? "bg-amber-100 text-amber-900" : "bg-secondary text-secondary-foreground"}`}>{PRIORITY_LABEL[task.priority]}</span></div>
+            <div className="flex flex-wrap items-center gap-2"><p className="font-medium">{task.title}</p>{task.actionType ? <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">{ACTION_LABEL[task.actionType]}</span> : null}<span className={`rounded-full px-2 py-0.5 text-xs ${task.priority === "high" ? "bg-amber-100 text-amber-900" : "bg-secondary text-secondary-foreground"}`}>{PRIORITY_LABEL[task.priority]}</span></div>
             {task.dueDate ? <p className="mt-1 text-sm text-muted-foreground">Fecha: {new Date(`${task.dueDate}T12:00:00`).toLocaleDateString("es-ES")}</p> : null}
             {task.notes ? <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{task.notes}</p> : null}
           </div>
