@@ -31,7 +31,7 @@ export interface HealthRecord {
   varroaMethod?: string; varroaCount?: number;
   foodReserve?: "good" | "low" | "very_low";
   pollenReserve?: "good" | "low" | "absent";
-  feedingNeeded?: boolean; feedingType?: "syrup" | "fondant" | "protein" | "other";
+  feedingNeeded?: boolean; feedingForm?: "liquid" | "paste"; feedingType?: "syrup" | "fondant" | "protein" | "other";
   feedingAmount?: string;
   queenSeen?: boolean; broodStatus?: "good" | "regular" | "poor";
   colonyStrength?: "strong" | "medium" | "weak";
