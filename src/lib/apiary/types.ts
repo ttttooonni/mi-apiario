@@ -42,6 +42,6 @@ export interface AppState {
 export const EMPTY_STATE: AppState = {
   apiaries: [], colonies: [], queens: [], actions: [], health: [], production: [], yearCloses: [], tasks: [],
 };
-export const DATA_VERSION = 1;
+export const DATA_VERSION = 2;
 export const APP_ID = "mi-apiario";
 export interface BackupFile { app: typeof APP_ID; version: number; exportedAt: string; data: AppState; }
