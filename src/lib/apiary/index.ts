@@ -1,4 +1,5 @@
 export * from "./backup";
+export * from "./backup-meta";
 export * from "./commands";
 export * from "./dates";
 export * from "./health";
