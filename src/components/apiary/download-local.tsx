@@ -1,13 +1,16 @@
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button, type ButtonProps } from "@/components/ui/button";
-import { saveBackupLocally, useNotebook } from "@/lib/apiary";
+import { markBackupCreated, saveBackupLocally, useNotebook } from "@/lib/apiary";
 
 export async function runLocalDownload(
   data: Parameters<typeof saveBackupLocally>[0],
 ): Promise<void> {
   try {
     const result = await saveBackupLocally(data);
+    if (result === "saved" || result === "downloaded" || result === "copied") {
+      markBackupCreated();
+    }
     if (result === "saved") toast.success("Copia guardada en este dispositivo");
     else if (result === "downloaded") toast.success("Descarga iniciada");
     else if (result === "copied") {
