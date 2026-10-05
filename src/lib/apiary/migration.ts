@@ -6,6 +6,7 @@ type LegacyState = Partial<AppState> & { version?: unknown; data?: unknown };
 
 function normalizeState(raw: LegacyState): AppState {
   return {
+    ...raw,
     apiaries: Array.isArray(raw.apiaries) ? raw.apiaries : [],
     colonies: Array.isArray(raw.colonies) ? raw.colonies : [],
     queens: Array.isArray(raw.queens) ? raw.queens : [],
@@ -15,7 +16,7 @@ function normalizeState(raw: LegacyState): AppState {
     yearCloses: Array.isArray(raw.yearCloses) ? raw.yearCloses : [],
     tasks: Array.isArray(raw.tasks) ? raw.tasks : [],
     losses: Array.isArray(raw.losses) ? raw.losses : [],
-  };
+  } as AppState;
 }
 
 export function migratePersistedState(raw: unknown): { state: AppState; version: number; migrated: boolean } {
