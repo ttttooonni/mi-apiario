@@ -143,6 +143,7 @@ export function sampleState(): AppState {
       rec("p-9", "wax", "2026-08-19", 2.1, "C2026-08-01"),
     ],
     tasks: [],
+    losses: [],
     yearCloses: [
       {
         year: 2025,
