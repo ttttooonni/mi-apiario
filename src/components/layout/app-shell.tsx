@@ -27,7 +27,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { show } = useTutorial();
   const [updateVisible, setUpdateVisible] = useState(false);
-  const [updateVersion, setUpdateVersion] = useState(APP_VERSION);\n  const [updateBuildId, setUpdateBuildId] = useState(APP_BUILD_ID);
+  const [updateVersion, setUpdateVersion] = useState(APP_VERSION);
+  const [updateBuildId, setUpdateBuildId] = useState(APP_BUILD_ID);
 
   useEffect(() => {
     let cancelled = false;
