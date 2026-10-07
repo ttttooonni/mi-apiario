@@ -11,4 +11,3 @@ export * from "./queens";
 export * from "./sample";
 export * from "./selectors";
 export * from "./types";
-export * from "./version";
