@@ -54,6 +54,7 @@ function ColonyPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingAction, setDeletingAction] = useState<string | null>(null);
   const [showAllLogs, setShowAllLogs] = useState(false);
+  const [showAllHealth, setShowAllHealth] = useState(false);
   const [materialOpen, setMaterialOpen] = useState(false);
 
   const colony = data.colonies.find((item) => item.id === colonyId);
@@ -281,7 +282,7 @@ function ColonyPage() {
         </div>
         {healthRows.length > 0 ? (
           <ul className="mt-4 space-y-3">
-            {healthRows.slice(0, 5).map((row) => {
+            {(showAllHealth ? healthRows : healthRows.slice(0, 5)).map((row) => {
               const summary = healthSummary(row);
               return (
                 <li key={row.id} className="text-sm">
@@ -298,6 +299,7 @@ function ColonyPage() {
             })}
           </ul>
         ) : null}
+        {healthRows.length > 5 ? <Button type="button" className="mt-3" size="sm" variant="outline" onClick={() => setShowAllHealth((value) => !value)}>{showAllHealth ? "Mostrar solo los 5 últimos" : `Ver los ${healthRows.length} registros sanitarios`}</Button> : null}
       </Card>
 
       <ColonyTasks
