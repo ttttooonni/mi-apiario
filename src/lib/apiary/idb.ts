@@ -147,7 +147,11 @@ export function isIndexedDbAvailable(): boolean {
 }
 
 export function getPersistStatus(): PersistStatus {
-  hydrate();
+  try {
+    hydrate();
+  } catch {
+    // El estado corrupto se expone como diagnóstico; no debe romper la pantalla de Datos.
+  }
   return {
     ok: !lastFailed,
     bytes: lastBytes,
