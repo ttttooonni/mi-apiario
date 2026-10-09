@@ -202,13 +202,10 @@ export async function loadState(): Promise<AppState> {
 }
 
 export async function replaceAll(state: AppState): Promise<void> {
-  hydrate();
-  if (storageCorrupt) {
-    lastFailed = true;
-    return;
-  }
-  cache = cloneState(state);
-  persistNow();
+  await runWrite(() => {
+    cache = cloneState(state);
+    touch();
+  });
 }
 
 /** Explicit recovery path used only after a validated backup has been imported. */
