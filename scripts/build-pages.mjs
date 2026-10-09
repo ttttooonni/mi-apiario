@@ -98,7 +98,7 @@ const updateGuard = [
   '      const versionInfo = versionResponse.ok ? await versionResponse.json() : null;',
   '      if (versionInfo?.buildId && localStorage.getItem("mi-apiario:app-build-seen") === versionInfo.buildId) return;',
   '      if (document.getElementById("mi-apiario-app-update-notice")) return;',
-  '      const response = await fetch(base + "index.html?check=" + Date.now(), { cache: "no-store", credentials: "same-origin" });'
+  '      const response = await fetch(base + "index.html?check=" + Date.now(), { cache: "no-store", credentials: "same-origin" });',
   '      if (!response.ok) return;',
   '      const latestAssets = assets(await response.text());',
   '      if (!latestAssets || latestAssets === currentAssets || shown) return;',
