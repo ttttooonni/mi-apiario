@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,8 +28,23 @@ export function ConfirmDelete({
   confirmLabel?: string;
   onConfirm: () => void | Promise<void>;
 }) {
+  const [busy, setBusy] = useState(false);
+
+  async function confirm() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await onConfirm();
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo completar la operación.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={(nextOpen) => { if (!busy) onOpenChange(nextOpen); }}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
@@ -37,9 +54,10 @@ export function ConfirmDelete({
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction
             className={cn(buttonVariants({ variant: "destructive" }))}
-            onClick={() => void onConfirm()}
-          >
-            {confirmLabel}
+            disabled={busy}
+            onClick={(event) => { event.preventDefault(); void confirm(); }}
+          >{busy ? "Procesando…" : confirmLabel}
+          
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
