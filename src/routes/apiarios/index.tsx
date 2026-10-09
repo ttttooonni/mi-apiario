@@ -38,6 +38,17 @@ function ApiariesPage() {
                   <span className="rounded-xl border border-amber-700/20 bg-amber-50/80 px-4 py-2.5 text-amber-950 dark:bg-amber-950/30 dark:text-amber-100">{nucs} {nucs === 1 ? "núcleo" : "núcleos"}</span>
                 </div>
               </Link>
+              <details className="mt-4 border-t border-border/60 pt-3">
+                <summary className="cursor-pointer text-sm font-medium text-primary">Más información del apiario</summary>
+                <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                  <div><dt className="text-xs text-muted-foreground">Ubicación</dt><dd className="break-words">{apiary.location || "Sin ubicación registrada"}</dd></div>
+                  <div><dt className="text-xs text-muted-foreground">Pérdidas anotadas</dt><dd>{data.losses.filter((loss) => loss.apiaryId === apiary.id).length}</dd></div>
+                  <div><dt className="text-xs text-muted-foreground">Creado</dt><dd>{apiary.createdAt ? new Date(apiary.createdAt).toLocaleDateString("es-ES") : "Sin fecha"}</dd></div>
+                  <div><dt className="text-xs text-muted-foreground">Última modificación</dt><dd>{apiary.updatedAt ? new Date(apiary.updatedAt).toLocaleDateString("es-ES") : "Sin fecha"}</dd></div>
+                  <div className="sm:col-span-2"><dt className="text-xs text-muted-foreground">Notas</dt><dd className="whitespace-pre-wrap break-words">{apiary.notes || "Sin notas registradas"}</dd></div>
+                </dl>
+                <Link to="/apiarios/$apiaryId" params={{ apiaryId: apiary.id }} className="mt-3 inline-flex text-sm font-semibold text-primary underline-offset-4 hover:underline">Abrir historial y fichas del apiario →</Link>
+              </details>
               <div className="absolute right-3 top-3"><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-11" aria-label="Acciones"><MoreHorizontal className="size-5" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end">
                 <DropdownMenuItem asChild><Link to="/apiarios/$apiaryId" params={{ apiaryId: apiary.id }}>Abrir</Link></DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => { setEditing(apiary); setFormOpen(true); }}>Editar</DropdownMenuItem>
