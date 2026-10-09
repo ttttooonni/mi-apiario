@@ -169,12 +169,30 @@ export function formatStorageSize(bytes: number): string {
 /** Coalesce several writes into a single localStorage setItem. */
 export async function runWrite<T>(fn: () => Promise<T> | T): Promise<T> {
   hydrate();
+  const rootWrite = writeDepth === 0;
+  const before = rootWrite ? cloneState(cache) : null;
+  let completed = false;
   writeDepth += 1;
   try {
-    return await fn();
+    const result = await fn();
+    completed = true;
+    return result;
   } finally {
     writeDepth -= 1;
-    if (writeDepth === 0 && persistDirty) persistNow();
+    if (rootWrite && persistDirty) {
+      if (!completed) {
+        // Never leave an in-memory partial mutation after a failed operation.
+        cache = before ?? cache;
+        persistDirty = false;
+      } else if (!persistNow()) {
+        // localStorage quota/security failures must fail the mutation too.
+        // Otherwise the UI could report success while the change disappears
+        // on the next reload.
+        cache = before ?? cache;
+        persistDirty = false;
+        throw new Error("No se pudo guardar el cambio en este dispositivo. Descarga una copia JSON y libera espacio antes de continuar.");
+      }
+    }
   }
 }
 
@@ -215,19 +233,37 @@ export async function restoreFromBackup(state: AppState): Promise<void> {
   persistDirty = false;
 }
 
-export async function putRecord<T>(store: StoreName, row: T): Promise<void> {
+export async function runWrite<T>(fn: () => Promise<T> | T): Promise<T> {
   hydrate();
-  const keyName = store === "yearCloses" ? "year" : "id";
-  const list = cache[STORE_KEYS[store]] as unknown as Array<Record<string, unknown>>;
-  const key = (row as Record<string, unknown>)[keyName];
-  const index = list.findIndex((item) => item[keyName] === key);
-  if (index >= 0) list[index] = row as Record<string, unknown>;
-  else list.push(row as Record<string, unknown>);
-  touch();
+  const rootWrite = writeDepth === 0;
+  const before = rootWrite ? cloneState(cache) : null;
+  let completed = false;
+  writeDepth += 1;
+  try {
+    const result = await fn();
+    completed = true;
+    return result;
+  } finally {
+    writeDepth -= 1;
+    if (rootWrite && persistDirty) {
+      if (!completed) {
+        // Never leave an in-memory partial mutation after a failed operation.
+        cache = before ?? cache;
+        persistDirty = false;
+      } else if (!persistNow()) {
+        // localStorage quota/security failures must fail the mutation too.
+        // Otherwise the UI could report success while the change disappears
+        // on the next reload.
+        cache = before ?? cache;
+        persistDirty = false;
+        throw new Error("No se pudo guardar el cambio en este dispositivo. Descarga una copia JSON y libera espacio antes de continuar.");
+      }
+    }
+  }
 }
 
 export async function deleteRecord(store: StoreName, id: IDBValidKey): Promise<void> {
-  hydrate();
+  await runWrite(() => {
   switch (store) {
     case "apiaries":
       cache.apiaries = cache.apiaries.filter((item) => item.id !== id);
@@ -258,6 +294,7 @@ export async function deleteRecord(store: StoreName, id: IDBValidKey): Promise<v
       break;
   }
   touch();
+  });
 }
 
 export async function deleteApiaryCascade(_state: AppState, apiaryId: string): Promise<void> {
