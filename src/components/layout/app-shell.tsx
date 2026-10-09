@@ -7,7 +7,7 @@ import { useTutorial } from "@/components/apiary/tutorial";
 import { HiveMark } from "@/components/brand/hive-mark";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { APP_BUILD_ID, APP_VERSION } from "@/lib/apiary";
+import { APP_BUILD_ID, APP_VERSION, useNotebook } from "@/lib/apiary";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: Home, exact: true },
@@ -26,6 +26,7 @@ function isActive(pathname: string, to: string, exact?: boolean) {
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { show } = useTutorial();
+  const { error: notebookError } = useNotebook();
   const [updateVisible, setUpdateVisible] = useState(false);
   const [updateVersion, setUpdateVersion] = useState(APP_VERSION);
   const [updateBuildId, setUpdateBuildId] = useState(APP_BUILD_ID);
@@ -129,6 +130,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <main className="mx-auto w-full max-w-5xl px-4 pt-5 pb-8 md:pl-[calc(15rem+2rem)] md:pr-8 md:pt-8 md:pb-12">
+        {notebookError ? (
+          <section className="mb-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-4" role="alert">
+            <p className="font-semibold text-destructive">No se pueden leer los datos guardados</p>
+            <p className="mt-1 text-sm">Para proteger el cuaderno, no cargues ejemplos ni vacíes los datos. Entra en Datos e importa una copia de seguridad válida. {notebookError instanceof Error ? notebookError.message : ""}</p>
+          </section>
+        ) : null}
         {updateVisible ? (
           <section className="mb-4 flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4" role="status">
             <span className="text-lg" aria-hidden="true">🆕</span>
