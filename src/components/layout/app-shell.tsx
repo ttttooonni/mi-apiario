@@ -137,7 +137,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </section>
         ) : null}
         {updateVisible ? (
-          <section className="mb-4 flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4" role="status">
+          <section id="mi-apiario-app-update-notice" className="mb-4 flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4" role="status">
             <span className="text-lg" aria-hidden="true">🆕</span>
             <div className="min-w-0 flex-1">
               <p className="font-semibold">Nueva versión de Mi Apiario</p>
