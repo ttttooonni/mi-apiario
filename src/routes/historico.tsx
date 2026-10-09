@@ -29,7 +29,7 @@ function HistoryPage() {
 
   const rows = yearlyHistory(data);
   const hasAnything =
-    data.production.length > 0 || data.yearCloses.length > 0 || data.colonies.length > 0;
+    data.production.length > 0 || data.yearCloses.length > 0 || data.colonies.length > 0 || (data.losses ?? []).length > 0;
 
   return (
     <div>
@@ -137,8 +137,8 @@ function HistoryPage() {
           if (!open) setClosingYear(null);
         }}
         year={closingYear ?? new Date().getFullYear()}
-        defaultHives={hiveCount(data)}
-        defaultNucs={nucCount(data)}
+        defaultHives={null}
+        defaultNucs={null}
         onSubmit={async (values) => {
           if (closingYear === null) return;
           await saveYearClose.mutateAsync({
