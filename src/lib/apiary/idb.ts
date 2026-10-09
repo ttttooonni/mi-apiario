@@ -230,33 +230,23 @@ export async function restoreFromBackup(state: AppState): Promise<void> {
   persistDirty = false;
 }
 
-export async function runWrite<T>(fn: () => Promise<T> | T): Promise<T> {
-  hydrate();
-  const rootWrite = writeDepth === 0;
-  const before = rootWrite ? cloneState(cache) : null;
-  let completed = false;
-  writeDepth += 1;
-  try {
-    const result = await fn();
-    completed = true;
-    return result;
-  } finally {
-    writeDepth -= 1;
-    if (rootWrite && persistDirty) {
-      if (!completed) {
-        // Never leave an in-memory partial mutation after a failed operation.
-        cache = before ?? cache;
-        persistDirty = false;
-      } else if (!persistNow()) {
-        // localStorage quota/security failures must fail the mutation too.
-        // Otherwise the UI could report success while the change disappears
-        // on the next reload.
-        cache = before ?? cache;
-        persistDirty = false;
-        throw new Error("No se pudo guardar el cambio en este dispositivo. Descarga una copia JSON y libera espacio antes de continuar.");
-      }
-    }
-  }
+
+export async function putRecord<S extends StoreName>(
+  store: S,
+  row: AppState[S][number],
+): Promise<void> {
+  await runWrite(() => {
+    const collection = cache[STORE_KEYS[store]] as Array<AppState[S][number]>;
+    const record = row as AppState[S][number] & { id?: string; year?: number };
+    const key = store === "yearCloses" ? record.year : record.id;
+    const index = collection.findIndex((item) => {
+      const candidate = item as AppState[S][number] & { id?: string; year?: number };
+      return (store === "yearCloses" ? candidate.year : candidate.id) === key;
+    });
+    if (index >= 0) collection[index] = row;
+    else collection.push(row);
+    touch();
+  });
 }
 
 export async function deleteRecord(store: StoreName, id: IDBValidKey): Promise<void> {
