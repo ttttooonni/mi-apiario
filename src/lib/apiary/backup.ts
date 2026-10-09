@@ -30,8 +30,6 @@ const LossCauseSchema = z.enum(["dead","absconded","queenless","weak","robbed","
 const LossSchema = z.object({ id: Id, apiaryId: Id, colonyId: Id.optional(), colonyNumber: z.string().min(1).max(40), kind: ColonyKindSchema, year: z.number().int().min(1990).max(2100), date: Iso, cause: LossCauseSchema, notes: Note, createdAt: Iso }).passthrough();
 const TaskSchema = z.object({ id: Id, colonyId: Id, title: z.string().min(1).max(200), dueDate: Iso.optional(), priority: z.enum(["high", "normal", "low"]).default("normal"), notes: Note, actionType: ActionTypeSchema.optional(), actionTreatmentProduct: z.string().max(MAX_NAME).optional(), actionFramesKind: FrameKindSchema.optional(), actionFramesQty: z.number().int().min(1).max(1_000).optional(), actionSupersQty: z.number().int().min(1).max(100).optional(), completedAt: Iso.optional(), createdAt: Iso }).passthrough();
 const rows = <T extends z.ZodType>(schema: T) => z.array(schema).max(MAX_ROWS);
-const BackupRow = z.record(z.string(), z.unknown());
-const BackupRows = z.array(BackupRow).max(MAX_ROWS);
 // Las copias generadas por mi-apiario deben poder volver a importarse aunque una versión
 // nueva añada campos. Validamos la envolvente y las colecciones, pero no eliminamos campos desconocidos.
 const BackupDataSchema = z.object({
