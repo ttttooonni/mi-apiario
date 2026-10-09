@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/apiary/empty-state";
 import { QueenSwatch } from "@/components/apiary/queen-swatch";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { ACTION_LABEL, coloniesOf, COLONY_LOSS_CAUSE_LABEL, currentQueen, formatDate, healthOfColony, lastAction, newId, nowIso, queenColorFromDate, QUEEN_COLOR_META, useAppMutations, useNotebook, varroaInfestationPercent, varroaLevel, VARROA_LEVEL_LABEL, VARROA_LEVEL_CLASS, latestVarroaCheck, inventoryForColony, type AppState, type Colony, type ColonyKind } from "@/lib/apiary";
+import { ACTION_LABEL, coloniesOf, COLONY_LOSS_CAUSE_LABEL, currentQueen, formatDate, healthOfColony, healthSummary, HEALTH_TOPIC_LABEL, lastAction, newId, nowIso, queenColorFromDate, QUEEN_COLOR_META, useAppMutations, useNotebook, varroaInfestationPercent, varroaLevel, VARROA_LEVEL_LABEL, VARROA_LEVEL_CLASS, latestVarroaCheck, inventoryForColony, type AppState, type Colony, type ColonyKind } from "@/lib/apiary";
 
 export const Route = createFileRoute("/apiarios/$apiaryId")({ component: ApiaryDetailPage });
 const QUEEN_GENETICS_LABEL: Record<string, string> = {
@@ -93,8 +93,36 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
             ? `Miel ${({ good: "buena", low: "escasa", very_low: "muy escasa" } as const)[latestHealth.foodReserve]}`
             : null,
   ].filter(Boolean).join(" · ");
-  return <li><Link to="/colonias/$colonyId" params={{ colonyId: colony.id }} className={`flex min-w-0 items-center gap-4 rounded-2xl border p-4 shadow-[var(--shadow-border)] transition-colors hover:bg-secondary/60 ${varroaStatus ? VARROA_LEVEL_CLASS[varroaStatus] : "border-border bg-card"}`}>
-    {colony.photo ? <img src={colony.photo} alt={`Foto de ${colony.kind === "hive" ? "colmena" : "núcleo"} ${colony.number}`} className="size-20 shrink-0 rounded-xl object-cover" /> : <span className={`flex size-20 shrink-0 items-center justify-center rounded-xl text-2xl font-bold ${colony.kind === "hive" ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950"}`}>{colony.kind === "hive" ? "C" : "N"}</span>}
-    <div className="min-w-0 flex-1"><div className="mb-2 flex flex-wrap items-center gap-2"><span className="font-display text-2xl font-semibold leading-none tabular-nums">{colony.number}</span><ColonyKindBadge kind={colony.kind} />{queen && <QueenSwatch date={queen.introducedAt} />}</div><p className="text-sm leading-snug text-muted-foreground">{action ? `${ACTION_LABEL[action.type]} · ${formatDate(action.date)}` : "Sin acciones registradas"}</p>{quickInfo ? <p className="mt-1 truncate text-xs text-muted-foreground">{quickInfo}</p> : null}</div>
-  </Link></li>;
+  const latestHealthSummary = latestHealth ? healthSummary(latestHealth) : null;
+  const details: Array<[string, string]> = [
+    ["Reina", queen ? `Introducida el ${formatDate(queen.introducedAt)}` : "Sin reina registrada"],
+    ["Color de reina", queenMeta?.label ?? "Sin registrar"],
+    ["Origen de reina", queen?.origin || "Sin registrar"],
+    ["Genética", queen?.genetics ? (QUEEN_GENETICS_LABEL[queen.genetics] ?? queen.genetics) : "Sin registrar"],
+    ["Línea genética", queen?.line || "Sin registrar"],
+    ["Cuadros normales", String(inventory.standardFrames)],
+    ["Cuadros de media alza", String(inventory.mediumFrames)],
+    ["Alzas", String(inventory.supers)],
+    ["Temperamento", colony.temperament ? profileLabels.temperament[colony.temperament] : "Sin registrar"],
+    ["Productividad", colony.productivity ? profileLabels.productivity[colony.productivity] : "Sin registrar"],
+    ["Tendencia a enjambrazón", colony.swarmingTendency ? profileLabels.swarmingTendency[colony.swarmingTendency] : "Sin registrar"],
+    ["Higiene", colony.hygiene ? profileLabels.hygiene[colony.hygiene] : "Sin registrar"],
+    ["Dominancia de la reina", colony.queenDominance ? profileLabels.queenDominance[colony.queenDominance] : "Sin registrar"],
+    ["Último control cuantificado de varroa", varroaCheck ? `${formatDate(varroaCheck.date)} · ${varroaPercent !== undefined ? `${varroaPercent.toFixed(1)} % · ${varroaStatus ? VARROA_LEVEL_LABEL[varroaStatus] : ""}` : "Sin porcentaje calculable"}` : "Sin control cuantificado"],
+    ["Último registro sanitario", latestHealth ? `${HEALTH_TOPIC_LABEL[latestHealth.topic]} · ${formatDate(latestHealth.date)}${latestHealthSummary ? ` · ${latestHealthSummary}` : ""}` : "Sin registros sanitarios"],
+    ["Última acción", action ? `${ACTION_LABEL[action.type]} · ${formatDate(action.date)}` : "Sin acciones registradas"],
+    ["Notas", colony.notes || "Sin notas"],
+  ];
+  return <li className={`overflow-hidden rounded-2xl border shadow-[var(--shadow-border)] ${varroaStatus ? VARROA_LEVEL_CLASS[varroaStatus] : "border-border bg-card"}`}>
+    <Link to="/colonias/$colonyId" params={{ colonyId: colony.id }} className="flex min-w-0 items-center gap-4 p-4 transition-colors hover:bg-secondary/60">
+      {colony.photo ? <img src={colony.photo} alt={`Foto de ${colony.kind === "hive" ? "colmena" : "núcleo"} ${colony.number}`} className="size-20 shrink-0 rounded-xl object-cover" /> : <span className={`flex size-20 shrink-0 items-center justify-center rounded-xl text-2xl font-bold ${colony.kind === "hive" ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950"}`}>{colony.kind === "hive" ? "C" : "N"}</span>}
+      <div className="min-w-0 flex-1"><div className="mb-2 flex flex-wrap items-center gap-2"><span className="font-display text-2xl font-semibold leading-none tabular-nums">{colony.number}</span><ColonyKindBadge kind={colony.kind} />{queen && <QueenSwatch date={queen.introducedAt} />}</div><p className="text-sm leading-snug text-muted-foreground">{action ? `${ACTION_LABEL[action.type]} · ${formatDate(action.date)}` : "Sin acciones registradas"}</p>{quickInfo ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{quickInfo}</p> : null}<p className="mt-2 text-xs font-semibold text-primary">Abrir ficha completa →</p></div>
+    </Link>
+    <details className="border-t border-border/60 px-4 py-3">
+      <summary className="cursor-pointer text-sm font-medium text-primary">Desplegar ficha rápida completa ({details.length} campos)</summary>
+      <dl className="mt-3 grid gap-x-4 gap-y-3 text-sm sm:grid-cols-2">
+        {details.map(([label, value]) => <div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="whitespace-pre-wrap break-words font-medium">{value}</dd></div>)}
+      </dl>
+    </details>
+  </li>;
 }
