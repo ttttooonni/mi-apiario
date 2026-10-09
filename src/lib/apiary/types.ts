@@ -28,7 +28,7 @@ export interface ColonyTask { id: string; colonyId: string; title: string; dueDa
 export interface AppState { apiaries: Apiary[]; colonies: Colony[]; queens: Queen[]; actions: ColonyAction[]; health: HealthRecord[]; production: ProductionRecord[]; yearCloses: YearClose[]; tasks: ColonyTask[]; losses: ColonyLoss[]; }
 export const EMPTY_STATE: AppState = { apiaries: [], colonies: [], queens: [], actions: [], health: [], production: [], yearCloses: [], tasks: [], losses: [] };
 export const DATA_VERSION = 2;
-export const APP_VERSION = "2.2.15";
-export const APP_BUILD_ID = "20261007-01";
+export const APP_VERSION = "2.2.17";
+export const APP_BUILD_ID = "20261009-03";
 export const APP_ID = "mi-apiario";
 export interface BackupFile { app: typeof APP_ID; version: number; exportedAt: string; data: AppState; }
