@@ -14,18 +14,19 @@
  * Tri-mode:
  *   - Deployed: the deployer injects a per-app `GROK_AUTH_*` + `BETTER_AUTH_URL`
  *     + `DATABASE_URL`, so real federated auth is persisted in Postgres.
- *   - Sandbox live preview: no injection -> falls back to the shared **preview
- *     client** (`./preview`) and derives the preview's `https://*.grok-sandbox.com`
- *     origin from the request, so real sign-in works (no demo users). Sessions
- *     and identities persist in the embedded PGLite DB (same DB as app data);
- *     the process restart wipes both. Live-preview iframe clients use a bearer
- *     token (partitioned cookies) — see `client.ts`.
+ *   - Sandbox live preview: the preview environment must inject
+ *     `GROK_AUTH_CLIENT_ID` + `GROK_AUTH_CLIENT_SECRET`; otherwise federated
+ *     auth stays off. The preview origin is restricted to
+ *     `https://*.grok-sandbox.com`. Sessions and identities persist in the
+ *     embedded PGLite DB (same DB as app data); the process restart wipes both.
+ *     Live-preview iframe clients use a bearer token (partitioned cookies) —
+ *     see `client.ts`.
  *   - Off (`VITE_AUTH_ENABLED=false`, the shipped default): no providers;
  *     `requireUserId` resolves a dev user with no database configured, and
  *     throws fail-closed once `DATABASE_URL` is set (see `verify.server.ts`).
  *
- * NEVER import this from client code — it pulls in `pg` + the preview secret +
- * server-only Better Auth internals. The client uses `@/lib/auth/client`;
+ * NEVER import this from client code — it pulls in `pg` + server-only Better
+ * Auth internals. The client uses `@/lib/auth/client`;
  * components read the user via `@/lib/auth/use-current-user`; server functions get
  * a verified id via `@/lib/auth/middleware`.
  */
