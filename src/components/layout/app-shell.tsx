@@ -159,8 +159,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         </section>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-center text-xs text-muted-foreground">
           <span>Mi Apiario · gratuito para apicultores</span><span aria-hidden="true">·</span>
-          <a className="underline underline-offset-2" href="mailto:ttttooonni.ia@gmail.com">Contacto por email</a><span aria-hidden="true">·</span>
+          <a className="underline underline-offset-2" href="mailto:ttttooonni.ia@gmail.com">ttttooonni.ia@gmail.com</a><span aria-hidden="true">·</span>
           <a className="underline underline-offset-2" href="https://wa.me/34639623598?text=Hola%2C%20te%20contacto%20por%20Mi%20Apiario." target="_blank" rel="noreferrer">WhatsApp: 639 623 598</a>
+        </div>
+        <div className="mx-auto mt-4 flex max-w-sm items-center justify-center gap-2 border-t border-border/70 pt-3 text-center">
+          <span className="flex size-7 items-center justify-center rounded-md border border-amber-500/30 bg-amber-500/10 text-xs font-bold text-amber-600" aria-hidden="true">蜂</span>
+          <div className="text-left leading-tight">
+            <p className="text-xs font-semibold tracking-wide"><span className="text-foreground">ttttooonni</span><span className="text-cyan-500">_IA</span></p>
+            <p className="text-[10px] text-muted-foreground">Tecnología al servicio de la apicultura</p>
+          </div>
         </div>
       </footer>
 

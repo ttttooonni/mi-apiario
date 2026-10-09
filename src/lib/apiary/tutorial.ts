@@ -2,28 +2,28 @@ export const TUTORIAL_KEY = "mi-apiario:tutorial-v2";
 
 export const TUTORIAL_STEPS = [
   {
-    title: "Tu cuaderno, en este dispositivo",
-    body: "mi-apiario guarda apiarios, colonias, reinas, acciones, sanidad y producción aquí mismo. No hay cuenta ni servidor. Lo que ves es lo que tienes.",
+    title: "Bienvenido a Mi Apiario",
+    body: "Mi Apiario es un cuaderno apícola digital, gratuito y pensado para ayudarte a organizar el trabajo diario desde el móvil o el ordenador. Está en fase de evaluación y tus sugerencias ayudan a mejorarla.",
   },
   {
-    title: "Apiarios, colmenas y núcleos",
-    body: "Un apiario agrupa el patio. Las colmenas y los núcleos se registran por separado, cada uno con su ficha y su historial de acciones habituales.",
+    title: "Crea tus apiarios",
+    body: "Empieza registrando cada ubicación o asentamiento. Dentro de cada apiario podrás organizar las colmenas y los núcleos y consultar sus fichas.",
   },
   {
-    title: "La reina lleva el color del año",
-    body: "El marcado sigue el código internacional: el color sale del año de introducción. No se elige a mano. Un cambio de reina queda en el historial.",
+    title: "Registra revisiones y tareas",
+    body: "Usa las fichas para mantener el historial de tus colonias y organizar el trabajo pendiente. Las tareas te ayudan a recordar qué debes revisar y cuándo.",
   },
   {
-    title: "Sanidad, con la varroa delante",
-    body: "Cada tratamiento de varroa se anota en la colmena: fecha, producto y nota. En Sanidad también quedan loque, nosema, pollo escayolado, velutina y los muestreos.",
+    title: "Controla la sanidad",
+    body: "Registra tratamientos y observaciones sanitarias, incluidos los controles de varroa. Anota las fechas y los detalles para mantener un historial útil de cada colonia.",
   },
   {
-    title: "Producción e histórico",
-    body: "Los lotes se anotan en la sala de extracción, no en el número de colmena. El censo de un año cerrado no se inventa a partir de las colmenas de hoy.",
+    title: "Anota la producción y consulta el histórico",
+    body: "Registra la cosecha y los datos de producción, y consulta la información histórica para tener una visión más ordenada de cada temporada.",
   },
   {
-    title: "Descarga la aplicación",
-    body: "Instálala en el teléfono, el iPad o el ordenador. Queda en la pantalla de inicio, funciona sin visor y los datos siguen en el dispositivo. En Datos puedes además guardar un JSON de respaldo.",
+    title: "Cuida tus datos y comparte la aplicación",
+    body: "Los datos se guardan en este dispositivo y no se sincronizan automáticamente con otros equipos. En Datos puedes crear una copia de seguridad JSON. Guárdala en un lugar seguro. Puedes compartir Mi Apiario con otros apicultores por WhatsApp.",
   },
 ] as const;
 
