@@ -25,7 +25,9 @@ Los registros se guardan localmente en el dispositivo o navegador que utilizas; 
 ## Cómo empezar
 
 1. Abre la aplicación desde el enlace.
-2. Si quieres, añádela a la pantalla de inicio del móvil para acceder como a una app.
+2. Añádela a la pantalla de inicio del móvil para acceder como a una app:
+   - **iPhone:** Mi Apiario no se descarga de la App Store, porque es una aplicación web. Abre el enlace en Safari, toca el botón de compartir —el cuadrado con la flecha hacia arriba— y elige Añadir a pantalla de inicio. El icono aparecerá en tu pantalla como si fuera una app normal. Importante: si usas Chrome en iPhone, no funciona; copia el enlace y pégalo en Safari.
+   - **Android:** Chrome suele mostrar un aviso de instalación al abrir la web. Si lo cerraste, abre el menú de Chrome —los tres puntitos— y toca Instalar aplicación. También funciona Añadir a pantalla de inicio desde ese mismo menú.
 3. Prueba las funciones con cuidado y revisa que la información se guarde correctamente.
 4. Cuéntanos qué falla, qué resulta confuso o qué te gustaría mejorar.
 
