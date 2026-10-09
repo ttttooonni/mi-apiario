@@ -173,14 +173,9 @@ function DataPage() {
         confirmLabel="Importar"
         onConfirm={async () => {
           if (!pendingFile) return;
-          try {
-            await restore.mutateAsync(pendingFile);
-            toast.success("Copia restaurada");
-          } catch (error) {
-            toast.error(error instanceof Error ? error.message : "No se pudo importar");
-          } finally {
-            setPendingFile(null);
-          }
+          await restore.mutateAsync(pendingFile);
+          toast.success("Copia restaurada");
+          setPendingFile(null);
         }}
       />
 
