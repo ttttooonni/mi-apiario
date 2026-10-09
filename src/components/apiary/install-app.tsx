@@ -148,9 +148,12 @@ function InstallDialog({
       window.location.assign(iosInstallHref());
       return;
     }
-    const opened = openAppInBrowser();
-    if (!opened) {
-      toast.message("Abre mi-apiario en el navegador y usa Instalar aplicación en el menú.");
+    const result = openAppInBrowser();
+    if (result === "opened") {
+      onOpenChange(false);
+      toast.success("Se ha abierto mi-apiario en el navegador. Completa la instalación desde el menú del navegador.");
+    } else {
+      toast.message("El navegador bloqueó la nueva pestaña. Abre mi-apiario en el navegador y usa Instalar aplicación en el menú.");
     }
   }
 
