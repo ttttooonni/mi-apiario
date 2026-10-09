@@ -431,7 +431,7 @@ function ColonyPage() {
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         title={`Eliminar ${noun.toLowerCase()} ${colony.number}`}
-        description="Se eliminará el historial de acciones y de reinas de esta colonia."
+        description="Se eliminarán las acciones, reinas, registros sanitarios y tareas de esta colonia. Las pérdidas ya registradas se conservarán en el histórico."
         onConfirm={async () => {
           const parent = colony.apiaryId;
           await removeColony.mutateAsync(colony.id);
