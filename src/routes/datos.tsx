@@ -68,8 +68,9 @@ function DataPage() {
           </div>
           <p className="mt-2 text-sm text-muted-foreground">Versión de datos: <strong>v{storage.dataVersion}</strong></p>
           <p className="mt-3 text-sm tabular-nums text-muted-foreground">
-            {data.apiaries.length} apiarios · {data.colonies.length} colonias ·{" "}
-            {data.actions.length} acciones · {data.production.length} lotes
+            {data.apiaries.length} apiarios · {data.colonies.filter((item) => item.kind === "hive").length} colmenas · {data.colonies.filter((item) => item.kind === "nuc").length} núcleos ·{" "}
+            {data.queens.length} reinas · {data.actions.length} acciones · {data.health.length} registros sanitarios ·{" "}
+            {data.production.length} lotes · {(data.tasks ?? []).length} tareas · {(data.losses ?? []).length} pérdidas · {(data.yearCloses ?? []).length} cierres
             {storage.bytes > 0 ? ` · ${formatStorageSize(storage.bytes)}` : ""}
           </p>
           {storage.corrupt ? (
@@ -102,8 +103,8 @@ function DataPage() {
             <p className="mt-3 text-xs text-muted-foreground">Aún no hay una copia registrada desde esta versión. Haz una para activar el recordatorio cada 15 días.</p>
           )}
           <p className="mt-1 text-sm text-muted-foreground">
-            Exporta un JSON con apiarios, colonias, reinas, acciones, sanidad, producción y
-            cierres anuales. Al importar, se sustituyen todos los datos actuales.
+            Exporta un JSON con apiarios, colmenas, núcleos, reinas, acciones, registros sanitarios,
+            producción, tareas, pérdidas y cierres anuales. Al importar, se sustituyen todos los datos actuales.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <DownloadLocalButton label="Descargar JSON" />
