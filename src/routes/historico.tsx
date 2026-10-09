@@ -76,16 +76,44 @@ function HistoryPage() {
                 ))}
               </dl>
 
+              {(() => {
+                const lots = data.production.filter((item) => Number(item.date.slice(0, 4)) === row.year)
+                  .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
+                if (!lots.length) return null;
+                return <details className="mt-4 rounded-xl border px-3 py-3">
+                  <summary className="cursor-pointer text-sm font-medium text-primary">Ver lotes de producción ({lots.length})</summary>
+                  <ul className="mt-3 divide-y divide-border">
+                    {lots.map((lot) => <li key={lot.id} className="py-3 first:pt-0 last:pb-0">
+                      <div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-medium">{PRODUCT_LABEL[lot.product]} · {formatDate(lot.date)}</p><p className="mt-1 text-xs text-muted-foreground">Lote <span className="font-mono">{lot.lot}</span></p></div><p className="font-semibold tabular-nums">{formatKg(lot.quantity)} kg</p></div>
+                      {lot.notes ? <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{lot.notes}</p> : null}
+                    </li>)}
+                  </ul>
+                </details>;
+              })()}
+
               {row.closed?.notes ? (
                 <p className="mt-3 text-sm text-muted-foreground">{row.closed.notes}</p>
               ) : null}
 
               {(() => {
-                const losses = data.losses.filter((loss) => loss.year === row.year);
+                const losses = data.losses.filter((loss) => loss.year === row.year).sort((a, b) => b.date.localeCompare(a.date));
                 if (!losses.length) return null;
                 const causes = new Map<string, number>();
                 for (const loss of losses) causes.set(loss.cause, (causes.get(loss.cause) ?? 0) + 1);
-                return <div className="mt-4 rounded-xl border border-destructive/15 bg-destructive/5 p-3"><p className="font-medium">Pérdidas: {losses.length}</p><p className="mt-1 text-sm text-muted-foreground">{[...causes.entries()].map(([cause, count]) => `${COLONY_LOSS_CAUSE_LABEL[cause as keyof typeof COLONY_LOSS_CAUSE_LABEL]}: ${count}`).join(" · ")}</p></div>;
+                return <details className="mt-4 rounded-xl border border-destructive/15 bg-destructive/5 p-3">
+                  <summary className="cursor-pointer font-medium">Pérdidas: {losses.length} · Ver causas y fichas</summary>
+                  <p className="mt-2 text-sm text-muted-foreground">{[...causes.entries()].map(([cause, count]) => `${COLONY_LOSS_CAUSE_LABEL[cause as keyof typeof COLONY_LOSS_CAUSE_LABEL]}: ${count}`).join(" · ")}</p>
+                  <ul className="mt-3 divide-y divide-border/70">
+                    {losses.map((loss) => {
+                      const apiary = data.apiaries.find((item) => item.id === loss.apiaryId);
+                      return <li key={loss.id} className="py-3 first:pt-0 last:pb-0">
+                        <p className="font-medium">{loss.kind === "hive" ? "Colmena" : "Núcleo"} {loss.colonyNumber} · {formatDate(loss.date)}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">{COLONY_LOSS_CAUSE_LABEL[loss.cause]}{apiary ? ` · ${apiary.name}` : ""}</p>
+                        {loss.notes ? <p className="mt-1 whitespace-pre-wrap text-sm">{loss.notes}</p> : null}
+                      </li>;
+                    })}
+                  </ul>
+                </details>;
               })()}
 
               {!row.isCurrent && !row.closed ? (
