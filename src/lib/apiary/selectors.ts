@@ -135,6 +135,7 @@ export function yearlyHistory(state: AppState): YearHistoryRow[] {
   const years = new Set<number>([yearNow]);
   for (const record of state.production) years.add(yearOf(record.date));
   for (const close of state.yearCloses) years.add(close.year);
+  for (const loss of state.losses ?? []) years.add(loss.year);
   const closes = new Map(state.yearCloses.map((item) => [item.year, item]));
 
   return [...years]
