@@ -87,9 +87,16 @@ export function iosInstallHref(): string {
   return `${publicUrl("")}?install=1&platform=ios`;
 }
 
-export function openAppInBrowser(): boolean {
-  if (typeof window === "undefined") return false;
+export function openAppInBrowser(): "opened" | "blocked" {
+  if (typeof window === "undefined") return "blocked";
   const url = `${window.location.origin}${publicUrl("")}`;
-  const opened = window.open(url, "_blank", "noopener,noreferrer");
-  return Boolean(opened);
+  try {
+    const opened = window.open(url, "_blank", "noopener,noreferrer");
+    // Some browsers return null even when the new tab was actually opened when
+    // noopener is used. Treat the call as an attempt; the UI must not report a
+    // false failure just because the returned WindowProxy is null.
+    return opened === null ? "blocked" : "opened";
+  } catch {
+    return "blocked";
+  }
 }
