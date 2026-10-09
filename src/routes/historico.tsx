@@ -9,8 +9,6 @@ import { Card } from "@/components/ui/card";
 import {
   formatDate,
   formatKg,
-  hiveCount,
-  nucCount,
   COLONY_LOSS_CAUSE_LABEL,
   PRODUCT_LABEL,
   PRODUCT_ORDER,
