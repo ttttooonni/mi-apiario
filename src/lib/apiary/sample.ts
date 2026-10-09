@@ -1,5 +1,5 @@
-import { replaceAll } from "./idb";
-import type { AppState } from "./types";
+import { replaceAll } from "./";
+import type { AppState } from "./";
 
 function iso(stamp: string): string {
   return `${stamp}T09:00:00.000Z`;
@@ -152,6 +152,7 @@ export function sampleState(): AppState {
         notes: "Cierre de temporada. Dos núcleos invernados.",
       },
     ],
+    losses: [],
   };
 }
 

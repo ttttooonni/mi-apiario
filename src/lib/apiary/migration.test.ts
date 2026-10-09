@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { makePersistedState, migratePersistedState, PERSISTED_VERSION } from "./migration";
+import { makePersistedState, migratePersistedState, PERSISTED_VERSION } from "./";
 
 test("migra el formato v1 conservando todos los datos", () => {
   const legacy = {
@@ -12,6 +12,7 @@ test("migra el formato v1 conservando todos los datos", () => {
     production: [{ id: "p1" }],
     yearCloses: [{ year: 2025 }],
     tasks: [{ id: "t1", colonyId: "c1" }],
+    losses: [],
   };
   const result = migratePersistedState(legacy);
   assert.equal(result.version, PERSISTED_VERSION);
@@ -29,6 +30,7 @@ test("el formato actual no vuelve a migrarse", () => {
     production: [],
     yearCloses: [],
     tasks: [],
+    losses: [],
   };
   const result = migratePersistedState(makePersistedState(state));
   assert.equal(result.migrated, false);
