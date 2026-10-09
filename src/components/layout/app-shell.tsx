@@ -34,9 +34,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function checkVersion() {
-      let seen: string | null = null;
+      let seenVersion: string | null = null;
+      let seenBuildId: string | null = null;
       try {
-        seen = window.localStorage.getItem("mi-apiario:app-build-seen") ?? window.localStorage.getItem("mi-apiario:app-version-seen");
+        seenVersion = window.localStorage.getItem("mi-apiario:app-version-seen");
+        seenBuildId = window.localStorage.getItem("mi-apiario:app-build-seen");
       } catch {
         // El aviso seguirá funcionando aunque localStorage no esté disponible.
       }
@@ -50,8 +52,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           headers: { "Cache-Control": "no-cache" },
         });
         if (response.ok) {
-          const remote = (await response.json()) as { version?: string };
+          const remote = (await response.json()) as { version?: string; buildId?: string };
           if (remote.version) targetVersion = remote.version;
+          if (remote.buildId) targetBuildId = remote.buildId;
         }
       } catch {
         // Sin red usamos la versión incluida en la aplicación.
@@ -59,7 +62,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       if (cancelled) return;
       setUpdateVersion(targetVersion);
-      setUpdateVisible(seen !== targetVersion);
+      setUpdateBuildId(targetBuildId);
+      const appIsOutdated = targetVersion !== APP_VERSION || targetBuildId !== APP_BUILD_ID;
+      const thisUpdateWasDismissed = seenVersion === targetVersion && seenBuildId === targetBuildId;
+      setUpdateVisible(appIsOutdated && !thisUpdateWasDismissed);
     }
 
     void checkVersion();
