@@ -58,7 +58,7 @@ function SanidadPage() {
         <div className="mb-3 flex flex-wrap items-center gap-2"><h2 className="mr-auto font-display text-lg font-medium">Histórico sanitario</h2>{years.map((item) => <FilterChip key={item} active={yearFilter === item} onClick={() => setYearFilter(item)}>{String(item)}</FilterChip>)}<FilterChip active={yearFilter === "all"} onClick={() => setYearFilter("all")}>Todos</FilterChip></div>
         <div className="mb-3 flex flex-wrap items-center gap-2"><FilterChip active={topicFilter === "all"} onClick={() => setTopicFilter("all")}>Todos</FilterChip>{HEALTH_TOPIC_ORDER.map((topic) => <FilterChip key={topic} active={topicFilter === topic} onClick={() => setTopicFilter(topic)}>{HEALTH_TOPIC_LABEL[topic]}</FilterChip>)}</div>
         {rows.length === 0 ? <EmptyState title="Sin registros sanitarios" description="Empieza por un tratamiento de varroa: colonia, fecha, producto y una nota si hace falta." actions={<Button onClick={() => { setPresetTopic("varroa"); setFormOpen(true); }}>Tratamiento varroa</Button>} /> :
-          <ul className="divide-y divide-border overflow-hidden rounded-2xl bg-card shadow-[var(--shadow-border)]">{rows.map((row) => { const colony = colonyOf(data, row.colonyId); const apiary = colony ? apiaryOf(data, colony.apiaryId) : undefined; const summary = healthSummary(row); return <li key={row.id} className="flex items-start justify-between gap-3 px-4 py-3"><div className="min-w-0"><p className="text-base font-medium">{HEALTH_TOPIC_LABEL[row.topic]}<span className="ml-2 font-normal text-muted-foreground">{HEALTH_KIND_LABEL[row.kind]}</span></p><p className="text-sm text-muted-foreground">{formatDate(row.date)}{colony ? <>{" · "}<Link to="/colonias/$colonyId" params={{ colonyId: colony.id }} className="hover:text-foreground">{COLONY_KIND_LABEL[colony.kind]} {colony.number}</Link></> : null}{apiary ? ` · ${apiary.name}` : ""}</p>{summary ? <p className="mt-1 text-sm">{summary}</p> : null}{row.notes ? <p className="mt-1 text-sm text-muted-foreground">{row.notes}</p> : null}</div><button type="button" className="shrink-0 text-sm text-muted-foreground hover:text-destructive" onClick={() => setDeleting(row)}>Quitar</button></li>; })}</ul>}
+          <ul className="divide-y divide-border overflow-hidden rounded-2xl bg-card shadow-[var(--shadow-border)]">{rows.map((row) => { const colony = colonyOf(data, row.colonyId); const apiary = colony ? apiaryOf(data, colony.apiaryId) : undefined; const summary = healthSummary(row); const details = healthDetailRows(row); return <li key={row.id} className="flex items-start justify-between gap-3 px-4 py-3"><div className="min-w-0 flex-1"><p className="text-base font-medium">{HEALTH_TOPIC_LABEL[row.topic]}<span className="ml-2 font-normal text-muted-foreground">{HEALTH_KIND_LABEL[row.kind]}</span></p><p className="text-sm text-muted-foreground">{formatDate(row.date)}{colony ? <>{" · "}<Link to="/colonias/$colonyId" params={{ colonyId: colony.id }} className="hover:text-foreground">{COLONY_KIND_LABEL[colony.kind]} {colony.number}</Link></> : null}{apiary ? ` · ${apiary.name}` : ""}</p>{summary ? <p className="mt-1 text-sm">{summary}</p> : null}{row.notes ? <p className="mt-1 text-sm text-muted-foreground">{row.notes}</p> : null}{details.length ? <details className="mt-2 rounded-lg bg-secondary/40 px-3 py-2"><summary className="cursor-pointer text-sm font-medium text-primary">Ver ficha sanitaria completa ({details.length} datos)</summary><dl className="mt-3 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2">{details.map(([label, value]) => <div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="font-medium">{value}</dd></div>)}</dl></details> : null}</div><button type="button" className="shrink-0 text-sm text-muted-foreground hover:text-destructive" onClick={() => setDeleting(row)}>Quitar</button></li>; })}</ul>}
       </section>
     </>}
     <HealthFormDialog open={formOpen} onOpenChange={setFormOpen} state={data} presetTopic={presetTopic} onSubmit={async (rowsToSave) => { await saveHealthMany.mutateAsync(rowsToSave); toast.success(rowsToSave.length > 1 ? `${rowsToSave.length} registros guardados` : "Registro guardado"); }} />
@@ -68,4 +68,36 @@ function SanidadPage() {
 
 function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: string }) {
   return <button type="button" onClick={onClick} className={active ? "rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground" : "rounded-lg bg-secondary px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"}>{children}</button>;
+}
+
+
+function healthDetailRows(row: HealthRecord): Array<[string, string | number]> {
+  const details: Array<[string, string | number]> = [];
+  const add = (label: string, value: string | number | undefined) => {
+    if (value !== undefined && value !== "") details.push([label, value]);
+  };
+  const food: Record<NonNullable<HealthRecord["foodReserve"]>, string> = { good: "Buena", low: "Escasa", very_low: "Muy escasa" };
+  const pollen: Record<NonNullable<HealthRecord["pollenReserve"]>, string> = { good: "Bueno", low: "Escaso", absent: "Ausente" };
+  const feedingForm: Record<NonNullable<HealthRecord["feedingForm"]>, string> = { liquid: "Líquida", paste: "Pasta" };
+  const feedingType: Record<NonNullable<HealthRecord["feedingType"]>, string> = { syrup: "Jarabe", fondant: "Fondant", protein: "Proteica", other: "Otra" };
+  const brood: Record<NonNullable<HealthRecord["broodStatus"]>, string> = { good: "Buena", regular: "Regular", poor: "Pobre" };
+  const strength: Record<NonNullable<HealthRecord["colonyStrength"]>, string> = { strong: "Fuerte", medium: "Media", weak: "Débil" };
+  const behavior: Record<NonNullable<HealthRecord["behavior"]>, string> = { calm: "Tranquila", normal: "Normal", nervous: "Nerviosa", aggressive: "Agresiva" };
+  add("Método de muestreo", row.varroaMethod);
+  add("Ácaros contados", row.varroaCount);
+  add("Abejas muestreadas", row.varroaSampleSize);
+  add("Reservas de miel", row.foodReserve ? food[row.foodReserve] : undefined);
+  add("Reservas de polen", row.pollenReserve ? pollen[row.pollenReserve] : undefined);
+  add("Necesita alimentación", row.feedingNeeded === undefined ? undefined : row.feedingNeeded ? "Sí" : "No");
+  add("Forma de alimentación", row.feedingForm ? feedingForm[row.feedingForm] : undefined);
+  add("Tipo de alimento", row.feedingType ? feedingType[row.feedingType] : undefined);
+  add("Cantidad suministrada", row.feedingAmount);
+  add("Reina vista", row.queenSeen === undefined ? undefined : row.queenSeen ? "Sí" : "No");
+  add("Estado de la cría", row.broodStatus ? brood[row.broodStatus] : undefined);
+  add("Fuerza de la colonia", row.colonyStrength ? strength[row.colonyStrength] : undefined);
+  add("Comportamiento", row.behavior ? behavior[row.behavior] : undefined);
+  add("Producto", row.product);
+  add("Observaciones", row.notes);
+  add("Creado el", row.createdAt ? new Date(row.createdAt).toLocaleString("es-ES") : undefined);
+  return details;
 }
