@@ -53,7 +53,7 @@ function ApiariesPage() {
       await saveApiary.mutateAsync({ id: editing?.id ?? newId(), createdAt: editing?.createdAt ?? now, updatedAt: now, ...values });
       toast.success(editing ? "Apiario actualizado" : "Apiario creado"); setEditing(null);
     }} />
-    <ConfirmDelete open={Boolean(deleting)} onOpenChange={(open) => { if (!open) setDeleting(null); }} title={`Eliminar ${deleting?.name ?? "apiario"}`} description="Se eliminarán también sus colmenas, núcleos y todo el historial asociado. Esta acción no se puede deshacer." onConfirm={async () => {
+    <ConfirmDelete open={Boolean(deleting)} onOpenChange={(open) => { if (!open) setDeleting(null); }} title={`Eliminar ${deleting?.name ?? "apiario"}`} description="Se eliminarán sus colmenas, núcleos, reinas, acciones, sanidad y tareas. Las pérdidas registradas se conservarán en el histórico. Esta acción no se puede deshacer." onConfirm={async () => {
       if (!deleting) return; await removeApiary.mutateAsync(deleting.id); toast.success("Apiario eliminado"); setDeleting(null);
     }} />
   </div>;
