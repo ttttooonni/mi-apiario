@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Field } from "@/components/apiary/field";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,23 +25,23 @@ export function YearCloseDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   year: number;
-  defaultHives: number;
-  defaultNucs: number;
+  defaultHives: number | null;
+  defaultNucs: number | null;
   onSubmit: (values: {
     hives: number;
     nucs: number;
     notes?: string;
   }) => Promise<void>;
 }) {
-  const [hives, setHives] = useState(String(defaultHives));
-  const [nucs, setNucs] = useState(String(defaultNucs));
+  const [hives, setHives] = useState(defaultHives === null ? "" : String(defaultHives));
+  const [nucs, setNucs] = useState(defaultNucs === null ? "" : String(defaultNucs));
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    setHives(String(defaultHives));
-    setNucs(String(defaultNucs));
+    setHives(defaultHives === null ? "" : String(defaultHives));
+    setNucs(defaultNucs === null ? "" : String(defaultNucs));
     setNotes("");
   }, [open, defaultHives, defaultNucs]);
 
@@ -54,6 +55,8 @@ export function YearCloseDialog({
         notes: notes.trim() || undefined,
       });
       onOpenChange(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo guardar el cierre anual.");
     } finally {
       setBusy(false);
     }
