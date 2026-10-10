@@ -72,8 +72,8 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
   const varroaStatus = varroaLevel(varroaPercent);
   const queenMeta = queen ? QUEEN_COLOR_META[queenColorFromDate(queen.introducedAt)] : undefined;
   const profileLabels = { temperament: { very_calm: "Muy tranquila", calm: "Tranquila", normal: "Normal", nervous: "Nerviosa", aggressive: "Agresiva" }, productivity: { very_high: "Productividad muy alta", high: "Productividad alta", normal: "Productividad normal", low: "Productividad baja", very_low: "Productividad muy baja" }, swarmingTendency: { very_low: "Enjambrazón muy baja", low: "Enjambrazón baja", medium: "Enjambrazón media", high: "Enjambrazón alta", very_high: "Enjambrazón muy alta" }, hygiene: { very_good: "Higiene muy buena", good: "Higiene buena", normal: "Higiene normal", low: "Higiene baja" }, queenDominance: { low: "Reina: dominancia baja", normal: "Reina: dominancia normal", high: "Reina: dominancia alta" } } as const;
-  const feedingRecord = healthOfColony(state, colony.id).find((record) => record.topic === "inspection" && record.feedingNeeded === true);
-  const feedingInfo = feedingRecord ? `🍯 Alimentación ${formatDate(feedingRecord.date)}` : null;
+  const feedingRecord = state.actions.filter((item) => item.colonyId === colony.id && item.type === "feeding").sort((a, b) => b.date.localeCompare(a.date))[0];
+  const feedingInfo = feedingRecord ? `🍯 Alimentación · ${formatDate(feedingRecord.date)}` : null;
   const queenInfo = queenMeta && queen ? `👑 Reina ${queenMeta.label} · ${formatDate(queen.introducedAt)}` : queenMeta ? `👑 Reina ${queenMeta.label}` : null;
   const quickInfo = [
     queenInfo,
@@ -99,7 +99,7 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
   const latestHealthSummary = latestHealth ? healthSummary(latestHealth) : null;
   const details: Array<[string, string]> = [
     ["Reina", queen ? `${queenMeta?.label ?? "Color sin registrar"} · ${formatDate(queen.introducedAt)}` : "Sin reina registrada"],
-    ["Alimentación", feedingRecord ? `Registrada el ${formatDate(feedingRecord.date)}` : "Sin registro de alimentación"],
+    ["Alimentación", feedingRecord ? `${formatDate(feedingRecord.date)}${feedingRecord.feedingAmount ? ` · ${feedingRecord.feedingAmount}` : ""}` : "Sin registro de alimentación"],
     ["Origen de reina", queen?.origin || "Sin registrar"],
     ["Genética", queen?.genetics ? (QUEEN_GENETICS_LABEL[queen.genetics] ?? queen.genetics) : "Sin registrar"],
     ["Línea genética", queen?.line || "Sin registrar"],
