@@ -59,6 +59,8 @@ export function ActionFormDialog({
   const [framesQty, setFramesQty] = useState("2");
   const [supersQty, setSupersQty] = useState("1");
   const [treatmentProduct, setTreatmentProduct] = useState("");
+  const [feedingType, setFeedingType] = useState<"syrup" | "fondant" | "protein" | "other">("syrup");
+  const [feedingAmount, setFeedingAmount] = useState("");
   const [harvestQty, setHarvestQty] = useState("");
   const [moveToApiaryId, setMoveToApiaryId] = useState("");
   const [queenOrigin, setQueenOrigin] = useState<string>("");
@@ -81,6 +83,8 @@ export function ActionFormDialog({
     setFramesQty("2");
     setSupersQty("1");
     setTreatmentProduct("");
+    setFeedingType("syrup");
+    setFeedingAmount("");
     setHarvestQty("");
     setMoveToApiaryId(otherApiaries[0]?.id ?? "");
     setQueenOrigin("");
@@ -100,6 +104,7 @@ export function ActionFormDialog({
     if (needsFrames && (!framesQty || Number(framesQty) < 1)) return false;
     if (needsSuper && (!supersQty || Number(supersQty) < 1)) return false;
     if (type === "treatment" && !treatmentProduct.trim()) return false;
+    if (type === "feeding" && !feedingType) return false;
     if (type === "move" && !moveToApiaryId) return false;
     if (type === "change_queen" && queen && !resolvedQueenRetireReason.trim()) return false;
     if (type === "change_queen" && queenOrigin === "Otro" && !customQueenOrigin.trim()) return false;
@@ -127,6 +132,10 @@ export function ActionFormDialog({
       }
       if (needsSuper) action.supersQty = Number(supersQty);
       if (type === "treatment") action.treatmentProduct = treatmentProduct.trim();
+      if (type === "feeding") {
+        action.feedingType = feedingType;
+        action.feedingAmount = feedingAmount.trim() || undefined;
+      }
       if (type === "harvest" && harvestQty) action.harvestQty = Number(harvestQty);
       if (type === "move") action.moveToApiaryId = moveToApiaryId;
       if (type === "change_queen") {
@@ -167,6 +176,8 @@ export function ActionFormDialog({
           </div> : null}
 
           {needsSuper ? <Field label="Número de alzas" htmlFor="supers-qty"><Input id="supers-qty" type="number" min={1} step={1} inputMode="numeric" value={supersQty} onChange={(event) => setSupersQty(event.target.value)} required /></Field> : null}
+
+          {type === "feeding" ? <div className="grid grid-cols-2 gap-3"><Field label="Alimento"><Select value={feedingType} onValueChange={(value) => setFeedingType(value as typeof feedingType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="syrup">Jarabe</SelectItem><SelectItem value="fondant">Fondant</SelectItem><SelectItem value="protein">Proteico</SelectItem><SelectItem value="other">Otro</SelectItem></SelectContent></Select></Field><Field label="Cantidad" htmlFor="feeding-amount"><Input id="feeding-amount" value={feedingAmount} onChange={(event) => setFeedingAmount(event.target.value)} placeholder="Ej. 1 kg" /></Field></div> : null}
 
           {type === "treatment" ? <Field label="Producto" htmlFor="treatment" hint="Queda también en Sanidad, como tratamiento de varroa."><Input id="treatment" value={treatmentProduct} onChange={(event) => setTreatmentProduct(event.target.value)} placeholder="Ácido oxálico sublimado" list="varroa-products" required /><datalist id="varroa-products"><option value="Ácido oxálico sublimado" /><option value="Ácido oxálico goteado" /><option value="Ácido fórmico" /><option value="Amitraz (tiras)" /><option value="Flumetrina (tiras)" /><option value="Timol" /></datalist></Field> : null}
 
