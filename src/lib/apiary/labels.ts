@@ -17,6 +17,7 @@ export const ACTION_TYPES: { id: ActionType; label: string }[] = [
   { id: "add_super", label: "Añadir alza" },
   { id: "remove_super", label: "Retirar alza" },
   { id: "treatment", label: "Tratamiento" },
+  { id: "feeding", label: "Alimentación" },
   { id: "split", label: "Dividir colmena" },
   { id: "create_nuc", label: "Crear núcleo" },
   { id: "move", label: "Mover colmena" },
@@ -82,6 +83,8 @@ export function actionSummary(action: ColonyAction, state: AppState): string | n
       return action.supersQty
         ? `Retiró ${action.supersQty} ${action.supersQty === 1 ? "alza" : "alzas"}`
         : "Retiró alza";
+    case "feeding":
+      return action.feedingType ? `Tipo: ${action.feedingType}${action.feedingAmount ? ` · ${action.feedingAmount}` : ""}` : null;
     case "treatment":
       return action.treatmentProduct ? `Producto: ${action.treatmentProduct}` : null;
     case "harvest":
