@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Download } from "lucide-react";
+import { Download, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { publicUrl } from "@/lib/asset";
 import { Button, type ButtonProps } from "@/components/ui/button";
@@ -173,12 +173,12 @@ function InstallDialog({
         : kind === "ios"
           ? {
               title: "Descargar aplicación",
-              body: "En iPhone o iPad: comparte la página y elige Añadir a pantalla de inicio. Te mostramos los pasos.",
-              action: "Ver instrucciones",
+              body: "Mi Apiario se instala como una aplicación desde Safari. No necesitas descargar nada desde App Store.",
+              action: "Entendido",
             }
           : {
               title: "Descargar aplicación",
-              body: "Ábrela en el navegador (fuera de este visor). En Chrome o Edge: menú → Instalar mi-apiario. En iPhone o iPad: Compartir → Añadir a pantalla de inicio.",
+              body: "Puedes instalar Mi Apiario en tu móvil para abrirlo como una aplicación. Sigue los pasos de tu dispositivo.",
               action: "Abrir para instalar",
             };
 
@@ -199,12 +199,28 @@ function InstallDialog({
           </DialogTitle>
           <DialogDescription>{copy.body}</DialogDescription>
         </DialogHeader>
-        {kind === "browser" ? (
-          <ol className="list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
-            <li>Abre mi-apiario en una pestaña del navegador.</li>
-            <li>Chrome o Edge: menú de tres puntos → Instalar aplicación.</li>
-            <li>iPhone o iPad: botón Compartir → Añadir a pantalla de inicio.</li>
-          </ol>
+        {kind !== "installed" && kind !== "prompt" ? (
+          <div className="grid gap-3">
+            <div className="rounded-xl border bg-secondary/40 p-4">
+              <div className="flex items-center gap-2 font-semibold"><Smartphone className="size-5 text-primary" /> Android</div>
+              <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
+                <li>Abre Mi Apiario en Chrome o Edge.</li>
+                <li>Abre el menú ⋮.</li>
+                <li>Pulsa <strong>Instalar aplicación</strong> o <strong>Añadir a pantalla de inicio</strong>.</li>
+              </ol>
+            </div>
+            <div className="rounded-xl border bg-secondary/40 p-4">
+              <div className="flex items-center gap-2 font-semibold"><Smartphone className="size-5 text-primary" /> iPhone / iPad</div>
+              <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
+                <li>Abre Mi Apiario en Safari.</li>
+                <li>Pulsa <strong>Compartir</strong>.</li>
+                <li>Elige <strong>Añadir a pantalla de inicio</strong>.</li>
+              </ol>
+            </div>
+            <div className="rounded-xl border border-amber-700/20 bg-amber-50/60 p-3 text-sm text-muted-foreground">
+              <strong className="text-foreground">💾 Tus datos son tuyos.</strong> Se guardan en tu dispositivo. Haz copias de seguridad periódicas desde la sección de datos.
+            </div>
+          </div>
         ) : null}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
