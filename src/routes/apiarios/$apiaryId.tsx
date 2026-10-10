@@ -55,7 +55,7 @@ function ColonySection({ title, empty, actionLabel, colonies, onAdd, state }: { 
   return <section className="mb-7">
     <div className="mb-3 flex flex-wrap items-center justify-between gap-3"><h2 className="font-display text-xl font-semibold">{title}<span className="ml-2 font-sans text-base font-medium text-muted-foreground tabular-nums">{colonies.length}</span></h2><Button size="lg" variant="outline" className="min-h-12 px-4 text-base" onClick={onAdd}>{actionLabel}</Button></div>
     {colonies.length === 0 ? <p className="rounded-xl border border-dashed p-4 text-base text-muted-foreground">{empty}</p> :
-      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">{colonies.map((colony) => <ColonyRow key={colony.id} colony={colony} state={state} />)}</ul>}
+      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">{colonies.map((colony) => <ColonyRow key={colony.id} colony={colony} state={state} />)}</ul>}
   </section>;
 }
 function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
@@ -72,8 +72,11 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
   const varroaStatus = varroaLevel(varroaPercent);
   const queenMeta = queen ? QUEEN_COLOR_META[queenColorFromDate(queen.introducedAt)] : undefined;
   const profileLabels = { temperament: { very_calm: "Muy tranquila", calm: "Tranquila", normal: "Normal", nervous: "Nerviosa", aggressive: "Agresiva" }, productivity: { very_high: "Productividad muy alta", high: "Productividad alta", normal: "Productividad normal", low: "Productividad baja", very_low: "Productividad muy baja" }, swarmingTendency: { very_low: "Enjambrazón muy baja", low: "Enjambrazón baja", medium: "Enjambrazón media", high: "Enjambrazón alta", very_high: "Enjambrazón muy alta" }, hygiene: { very_good: "Higiene muy buena", good: "Higiene buena", normal: "Higiene normal", low: "Higiene baja" }, queenDominance: { low: "Reina: dominancia baja", normal: "Reina: dominancia normal", high: "Reina: dominancia alta" } } as const;
+  const feedingRecord = healthOfColony(state, colony.id).find((record) => record.topic === "inspection" && record.feedingNeeded === true);
+  const feedingInfo = feedingRecord ? `🍯 Alimentación ${formatDate(feedingRecord.date)}` : null;
+  const queenInfo = queenMeta && queen ? `👑 Reina ${queenMeta.label} · ${formatDate(queen.introducedAt)}` : queenMeta ? `👑 Reina ${queenMeta.label}` : null;
   const quickInfo = [
-    queenMeta ? `Reina ${queenMeta.label.toLowerCase()}` : null,
+    queenInfo,
     `📦 ${inventory.standardFrames} cuadros${inventory.mediumFrames ? ` + ${inventory.mediumFrames} media alza` : ""} · ${inventory.supers} alzas`,
     queen?.genetics ? `🧬 ${QUEEN_GENETICS_LABEL[queen.genetics] ?? queen.genetics}${queen.line ? ` · ${queen.line}` : ""}` : null,
     colony.temperament ? `🐝 ${profileLabels.temperament[colony.temperament]}` : null,
@@ -95,8 +98,8 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
   ].filter(Boolean).join(" · ");
   const latestHealthSummary = latestHealth ? healthSummary(latestHealth) : null;
   const details: Array<[string, string]> = [
-    ["Reina", queen ? `Introducida el ${formatDate(queen.introducedAt)}` : "Sin reina registrada"],
-    ["Color de reina", queenMeta?.label ?? "Sin registrar"],
+    ["Reina", queen ? `${queenMeta?.label ?? "Color sin registrar"} · ${formatDate(queen.introducedAt)}` : "Sin reina registrada"],
+    ["Alimentación", feedingRecord ? `Registrada el ${formatDate(feedingRecord.date)}` : "Sin registro de alimentación"],
     ["Origen de reina", queen?.origin || "Sin registrar"],
     ["Genética", queen?.genetics ? (QUEEN_GENETICS_LABEL[queen.genetics] ?? queen.genetics) : "Sin registrar"],
     ["Línea genética", queen?.line || "Sin registrar"],
@@ -114,9 +117,9 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
     ["Notas", colony.notes || "Sin notas"],
   ];
   return <li className={`overflow-hidden rounded-2xl border shadow-[var(--shadow-border)] ${varroaStatus ? VARROA_LEVEL_CLASS[varroaStatus] : "border-border bg-card"}`}>
-    <Link to="/colonias/$colonyId" params={{ colonyId: colony.id }} className="flex min-w-0 items-center gap-4 p-4 transition-colors hover:bg-secondary/60">
-      {colony.photo ? <img src={colony.photo} alt={`Foto de ${colony.kind === "hive" ? "colmena" : "núcleo"} ${colony.number}`} className="size-20 shrink-0 rounded-xl object-cover" /> : <span className={`flex size-20 shrink-0 items-center justify-center rounded-xl text-2xl font-bold ${colony.kind === "hive" ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950"}`}>{colony.kind === "hive" ? "C" : "N"}</span>}
-      <div className="min-w-0 flex-1"><div className="mb-2 flex flex-wrap items-center gap-2"><span className="font-display text-2xl font-semibold leading-none tabular-nums">{colony.number}</span><ColonyKindBadge kind={colony.kind} />{queen && <QueenSwatch date={queen.introducedAt} />}</div><p className="text-sm leading-snug text-muted-foreground">{action ? `${ACTION_LABEL[action.type]} · ${formatDate(action.date)}` : "Sin acciones registradas"}</p>{quickInfo ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{quickInfo}</p> : null}<p className="mt-2 text-xs font-semibold text-primary">Abrir ficha completa →</p></div>
+    <Link to="/colonias/$colonyId" params={{ colonyId: colony.id }} className="flex min-w-0 items-center gap-3 p-3 transition-colors hover:bg-secondary/60 sm:gap-4 sm:p-4">
+      {colony.photo ? <img src={colony.photo} alt={`Foto de ${colony.kind === "hive" ? "colmena" : "núcleo"} ${colony.number}`} className="size-24 shrink-0 rounded-xl object-cover sm:size-20" /> : <span className={`flex size-20 shrink-0 items-center justify-center rounded-xl text-2xl font-bold ${colony.kind === "hive" ? "bg-emerald-100 text-emerald-900" : "bg-amber-100 text-amber-950"}`}>{colony.kind === "hive" ? "C" : "N"}</span>}
+      <div className="min-w-0 flex-1"><div className="mb-2 flex flex-wrap items-center gap-2"><span className="font-display text-xl font-semibold leading-none tabular-nums sm:text-2xl">{colony.number}</span><ColonyKindBadge kind={colony.kind} />{queen && <QueenSwatch date={queen.introducedAt} />}</div><p className="text-sm leading-snug text-muted-foreground">{action ? `${ACTION_LABEL[action.type]} · ${formatDate(action.date)}` : "Sin acciones registradas"}</p>{quickInfo ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{quickInfo}</p> : null}<p className="mt-2 text-xs font-semibold text-primary">Abrir ficha completa →</p></div>
     </Link>
     <details className="border-t border-border/60 px-4 py-3">
       <summary className="cursor-pointer text-sm font-medium text-primary">Desplegar ficha rápida completa ({details.length} campos)</summary>
