@@ -29,6 +29,7 @@ export interface AppState { apiaries: Apiary[]; colonies: Colony[]; queens: Quee
 export const EMPTY_STATE: AppState = { apiaries: [], colonies: [], queens: [], actions: [], health: [], production: [], yearCloses: [], tasks: [], losses: [] };
 export const DATA_VERSION = 2;
 export const APP_VERSION = "2.2.19";
-export const APP_BUILD_ID = import.meta.env?.VITE_APP_BUILD_ID || "20261010-01";
+const BUILD_ID_FROM_ENV = typeof import.meta.env === "undefined" ? undefined : import.meta.env.VITE_APP_BUILD_ID;
+export const APP_BUILD_ID = BUILD_ID_FROM_ENV || "20261010-01";
 export const APP_ID = "mi-apiario";
 export interface BackupFile { app: typeof APP_ID; version: number; exportedAt: string; data: AppState; }
