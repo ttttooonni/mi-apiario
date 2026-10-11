@@ -118,7 +118,7 @@ if (!versionMatch) {
   process.exit(1);
 }
 const versionInfo = { version: versionMatch[1], buildId };
-writeFileSync(join(dest, "version.json"), `${JSON.stringify(versionInfo, null, 2)}\\n`);
+writeFileSync(join(dest, "version.json"), `${JSON.stringify(versionInfo, null, 2)}\n`);
 
 console.log(`[build-pages] Versión ${versionInfo.version}, build ${buildId}`);
 console.log(`[build-pages] Listo: ${dest} (base ${startUrl})`);
