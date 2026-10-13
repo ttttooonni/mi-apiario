@@ -10,31 +10,23 @@ async function applyAction(action: ColonyAction): Promise<void> {
   if (action.type === "change_queen") {
     const current = currentQueen(state, action.colonyId);
     if (current) {
-      const retired: Queen = {
+      await putRecord("queens", {
         ...current,
         retiredAt: action.date,
         retireReason: action.queenRetireReason,
-      };
-      await putRecord("queens", retired);
+      });
     }
-    const next: Queen = {
+    await putRecord("queens", {
       id: newId(),
       colonyId: action.colonyId,
       introducedAt: action.queenIntroducedAt || action.date,
       origin: action.queenOrigin,
-    };
-    await putRecord("queens", next);
+    });
   }
 
   if (action.type === "move" && action.moveToApiaryId) {
     const colony = state.colonies.find((item) => item.id === action.colonyId);
-    if (colony) {
-      await putRecord("colonies", {
-        ...colony,
-        apiaryId: action.moveToApiaryId,
-        updatedAt: nowIso(),
-      });
-    }
+    if (colony) await putRecord("colonies", { ...colony, apiaryId: action.moveToApiaryId, updatedAt: nowIso() });
   }
 
   await putRecord("actions", action);
