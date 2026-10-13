@@ -134,6 +134,7 @@ async function migrateLocalStorageIfNeeded(db: IDBDatabase): Promise<void> {
   if (!raw) {
     const tx = db.transaction(META_STORE, "readwrite");
     tx.objectStore(META_STORE).put({ key: "localStorageMigrated", value: true });
+    tx.objectStore(META_STORE).put({ key: "migratedFromVersion", value: migratedState ? migratePersistedState(parsed).version : 1 });
     await transactionDone(tx);
     return;
   }
