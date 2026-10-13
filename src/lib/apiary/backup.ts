@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { todayISO } from "./dates";
 import { restoreFromBackup } from "./idb";
+import { migratePersistedState } from "./migration";
 import { APP_ID, DATA_VERSION, type AppState, type BackupFile } from "./types";
 export type BackupSaveResult = "saved" | "downloaded" | "copied" | "cancelled";
 const MAX_BACKUP_CHARS = 20_000_000;
@@ -66,10 +67,26 @@ export function parseBackup(raw: string): AppState {
   if (raw.length > MAX_BACKUP_CHARS) throw new Error("El archivo es demasiado grande para importarlo con seguridad.");
   let json: unknown;
   try { json = JSON.parse(raw); } catch { throw new Error("El archivo no es un JSON válido."); }
-  const parsed = BackupSchema.safeParse(json);
-  if (!parsed.success) throw new Error(zodMessage(parsed.error));
-  if (parsed.data.app !== APP_ID) throw new Error("El archivo no pertenece a mi-apiario.");
-  if (parsed.data.version > DATA_VERSION) throw new Error("La copia procede de una versión más nueva de Mi Apiario.");
-  return parsed.data.data as AppState;
+  if (!json || typeof json !== "object") throw new Error("El archivo no tiene el formato de una copia de mi-apiario.");
+
+  const candidate = json as { app?: unknown; version?: unknown; data?: unknown };
+  if (candidate.app !== APP_ID) throw new Error("El archivo no pertenece a mi-apiario.");
+  if (typeof candidate.data !== "object" || candidate.data === null) throw new Error("La copia no contiene datos válidos.");
+
+  const version = typeof candidate.version === "number" ? candidate.version : 1;
+  if (version > DATA_VERSION) throw new Error("La copia procede de una versión más nueva de Mi Apiario.");
+  const migrated = migratePersistedState(json).state;
+
+  // Current schema validation remains the safety gate when possible.
+  const validated = BackupDataSchema.safeParse(migrated);
+  if (validated.success) return validated.data as AppState;
+
+  // Historical versions may omit fields that were introduced later.
+  // Keep their records intact and only require that every collection is an array.
+  const data = migrated as unknown as Record<string, unknown>;
+  for (const key of ["apiaries","colonies","queens","actions","health","production","yearCloses","tasks","losses"]) {
+    if (!Array.isArray(data[key])) throw new Error("La copia contiene una colección inválida.");
+  }
+  return migrated;
 }
 export async function importBackup(raw: string): Promise<void> { const state = parseBackup(raw); await restoreFromBackup(state); }
