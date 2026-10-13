@@ -13,6 +13,7 @@ export const STORE_NAMES = [
 
 export const PHOTO_STORE = "photos" as const;
 const META_STORE = "meta" as const;
+const RECOVERY_STORE = "recovery" as const;
 type StoreName = (typeof STORE_NAMES)[number];
 
 export type PhotoRecord = {
@@ -89,6 +90,7 @@ function openDb(): Promise<IDBDatabase> {
         photos.createIndex("queenId", "queenId", { unique: false });
       }
       if (!db.objectStoreNames.contains(META_STORE)) db.createObjectStore(META_STORE, { keyPath: "key" });
+      if (!db.objectStoreNames.contains(RECOVERY_STORE)) db.createObjectStore(RECOVERY_STORE, { keyPath: "id" });
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => { dbPromise = null; reject(request.error ?? new Error("No se pudo abrir IndexedDB.")); };
@@ -249,6 +251,16 @@ export async function replaceAll(state: AppState): Promise<void> {
 }
 
 export async function restoreFromBackup(state: AppState): Promise<void> {
+  await ensureHydrated();
+  const current = cloneState(cache ?? emptyState());
+  const db = await openDb();
+  const recoveryTx = db.transaction(RECOVERY_STORE, "readwrite");
+  recoveryTx.objectStore(RECOVERY_STORE).put({
+    id: "pre-restore",
+    createdAt: new Date().toISOString(),
+    data: current,
+  });
+  await transactionDone(recoveryTx);
   await replaceAll(state);
 }
 
