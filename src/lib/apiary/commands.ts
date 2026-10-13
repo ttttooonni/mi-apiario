@@ -1,5 +1,5 @@
 import { currentQueen } from "./selectors";
-import { deleteRecord, loadState, putRecord, runWrite } from "./idb";
+import { deleteRecord, loadState, putRecord, runWrite, transactionWrite } from "./idb";
 import { newId, nowIso } from "./dates";
 import { isLegacyHealthId, legacyActionId } from "./health";
 import type { ColonyAction, HealthRecord, Queen } from "./types";
@@ -34,20 +34,31 @@ async function applyAction(action: ColonyAction): Promise<void> {
 
 /** Persists an action and applies side effects (reina, traslado) in one write. */
 export async function commitAction(action: ColonyAction): Promise<void> {
-  await runWrite(() => applyAction(action));
-}
-
-async function applyHealth(row: HealthRecord): Promise<void> {
-  await putRecord("health", row);
+  const state = await loadState();
+  await transactionWrite(["actions", "queens", "colonies"], (tx) => {
+    if (action.type === "change_queen") {
+      const current = currentQueen(state, action.colonyId);
+      if (current) tx.objectStore("queens").put({ ...current, retiredAt: action.date, retireReason: action.queenRetireReason });
+      tx.objectStore("queens").put({
+        id: newId(), colonyId: action.colonyId,
+        introducedAt: action.queenIntroducedAt || action.date, origin: action.queenOrigin,
+      });
+    }
+    if (action.type === "move" && action.moveToApiaryId) {
+      const colony = state.colonies.find((item) => item.id === action.colonyId);
+      if (colony) tx.objectStore("colonies").put({ ...colony, apiaryId: action.moveToApiaryId, updatedAt: nowIso() });
+    }
+    tx.objectStore("actions").put(action);
+  });
 }
 
 export async function commitHealth(row: HealthRecord): Promise<void> {
-  await runWrite(() => applyHealth(row));
+  await transactionWrite(["health"], (tx) => { tx.objectStore("health").put(row); });
 }
 
 export async function commitHealthMany(rows: HealthRecord[]): Promise<void> {
-  await runWrite(async () => {
-    for (const row of rows) await applyHealth(row);
+  await transactionWrite(["health"], (tx) => {
+    for (const row of rows) tx.objectStore("health").put(row);
   });
 }
 
