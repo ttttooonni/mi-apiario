@@ -284,46 +284,36 @@ export async function deleteRecord(store: StoreName, id: IDBValidKey): Promise<v
 }
 
 export async function deleteApiaryCascade(_state: AppState, apiaryId: string): Promise<void> {
-  await runWrite(() => {
-    const colonyIds = new Set(cache!.colonies.filter((item) => item.apiaryId === apiaryId).map((item) => item.id));
-    cache!.apiaries = cache!.apiaries.filter((item) => item.id !== apiaryId);
-    cache!.colonies = cache!.colonies.filter((item) => item.apiaryId !== apiaryId);
-    cache!.queens = cache!.queens.filter((item) => !colonyIds.has(item.colonyId));
-    cache!.actions = cache!.actions.filter((item) => !colonyIds.has(item.colonyId));
-    cache!.health = cache!.health.filter((item) => !colonyIds.has(item.colonyId));
-    cache!.tasks = cache!.tasks.filter((item) => !colonyIds.has(item.colonyId));
-  });
+  await ensureHydrated();
+  const state = cache!;
+  const colonyIds = new Set(state.colonies.filter((item) => item.apiaryId === apiaryId).map((item) => item.id));
+  const db = await openDb();
+  const tx = db.transaction([...STORE_NAMES], "readwrite");
+  tx.objectStore("apiaries").delete(apiaryId);
+  for (const row of state.colonies) if (row.apiaryId === apiaryId) tx.objectStore("colonies").delete(row.id);
+  for (const row of state.queens) if (colonyIds.has(row.colonyId)) tx.objectStore("queens").delete(row.id);
+  for (const row of state.actions) if (colonyIds.has(row.colonyId)) tx.objectStore("actions").delete(row.id);
+  for (const row of state.health) if (colonyIds.has(row.colonyId)) tx.objectStore("health").delete(row.id);
+  for (const row of state.tasks) if (colonyIds.has(row.colonyId)) tx.objectStore("tasks").delete(row.id);
+  await transactionDone(tx);
+  cache = await readAll(db);
+  lastFailed = false;
+  await estimateStorage();
 }
 
 export async function deleteColonyCascade(_state: AppState, colonyId: string): Promise<void> {
-  await runWrite(() => {
-    cache!.colonies = cache!.colonies.filter((item) => item.id !== colonyId);
-    cache!.queens = cache!.queens.filter((item) => item.colonyId !== colonyId);
-    cache!.actions = cache!.actions.filter((item) => item.colonyId !== colonyId);
-    cache!.health = cache!.health.filter((item) => item.colonyId !== colonyId);
-    cache!.tasks = cache!.tasks.filter((item) => item.colonyId !== colonyId);
-  });
-}
-
-export async function getRecord<S extends StoreName>(store: S, id: IDBValidKey): Promise<AppState[S][number] | undefined> {
+  await ensureHydrated();
   const db = await openDb();
-  const tx = db.transaction(store, "readonly");
-  const row = await requestResult(tx.objectStore(store).get(id));
+  const tx = db.transaction(["colonies", "queens", "actions", "health", "tasks"], "readwrite");
+  tx.objectStore("colonies").delete(colonyId);
+  for (const row of cache!.queens) if (row.colonyId === colonyId) tx.objectStore("queens").delete(row.id);
+  for (const row of cache!.actions) if (row.colonyId === colonyId) tx.objectStore("actions").delete(row.id);
+  for (const row of cache!.health) if (row.colonyId === colonyId) tx.objectStore("health").delete(row.id);
+  for (const row of cache!.tasks) if (row.colonyId === colonyId) tx.objectStore("tasks").delete(row.id);
   await transactionDone(tx);
-  return row as AppState[S][number] | undefined;
-}
-
-export async function getRecordsByIndex<S extends StoreName>(
-  store: S,
-  indexName: string,
-  value: IDBValidKey,
-): Promise<AppState[S]> {
-  const db = await openDb();
-  const tx = db.transaction(store, "readonly");
-  const index = tx.objectStore(store).index(indexName);
-  const rows = await requestResult(index.getAll(value));
-  await transactionDone(tx);
-  return rows as AppState[S];
+  cache = await readAll(db);
+  lastFailed = false;
+  await estimateStorage();
 }
 
 export async function upsertYearClose(row: YearClose): Promise<void> { await putRecord("yearCloses", row); }
