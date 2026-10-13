@@ -10,7 +10,7 @@ import { ConfirmDelete } from "@/components/apiary/confirm-delete";
 import { EmptyState } from "@/components/apiary/empty-state";
 import { HealthFormDialog } from "@/components/apiary/health-form";
 import { QueenFormDialog } from "@/components/apiary/queen-form";
-import { QueenColorCaption, QueenSwatch } from "@/components/apiary/queen-swatch";
+import { QueenSwatch } from "@/components/apiary/queen-swatch";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -208,10 +208,12 @@ function ColonyPage() {
             <h2 className="font-display text-lg font-medium">Reina</h2>
             {queen ? (
               <div className="mt-3 space-y-1.5">
-                <QueenColorCaption date={queen.introducedAt} />
-                <p className="text-sm text-muted-foreground">
-                  Introducida el {formatDate(queen.introducedAt)}
-                  {queen.origin ? ` · ${queen.origin}` : ""}
+                <p className="inline-flex items-center gap-2 text-sm">
+                  <QueenSwatch date={queen.introducedAt} />
+                  <span>
+                    Introducida el {formatDate(queen.introducedAt)}
+                    {queen.origin ? ` · ${queen.origin}` : ""}
+                  </span>
                 </p>
               </div>
             ) : (
