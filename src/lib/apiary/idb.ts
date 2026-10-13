@@ -285,6 +285,27 @@ export async function deleteColonyCascade(_state: AppState, colonyId: string): P
   });
 }
 
+export async function getRecord<S extends StoreName>(store: S, id: IDBValidKey): Promise<AppState[S][number] | undefined> {
+  const db = await openDb();
+  const tx = db.transaction(store, "readonly");
+  const row = await requestResult(tx.objectStore(store).get(id));
+  await transactionDone(tx);
+  return row as AppState[S][number] | undefined;
+}
+
+export async function getRecordsByIndex<S extends StoreName>(
+  store: S,
+  indexName: string,
+  value: IDBValidKey,
+): Promise<AppState[S]> {
+  const db = await openDb();
+  const tx = db.transaction(store, "readonly");
+  const index = tx.objectStore(store).index(indexName);
+  const rows = await requestResult(index.getAll(value));
+  await transactionDone(tx);
+  return rows as AppState[S];
+}
+
 export async function upsertYearClose(row: YearClose): Promise<void> { await putRecord("yearCloses", row); }
 
 export async function savePhoto(photo: PhotoRecord): Promise<void> {
