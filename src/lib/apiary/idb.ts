@@ -2,7 +2,7 @@ import type { AppState, YearClose } from "./types";
 import { makePersistedState, migratePersistedState, PERSISTED_VERSION } from "./migration";
 
 const DB_NAME = "mi-apiario";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const LS_KEY = "mi-apiario:v1";
 const PRE_MIGRATION_KEY = "mi-apiario:pre-migration:v1";
 
