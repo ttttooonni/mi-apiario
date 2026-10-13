@@ -27,8 +27,8 @@ export type TaskPriority = "high" | "normal" | "low";
 export interface ColonyTask { id: string; colonyId: string; title: string; dueDate?: string; priority: TaskPriority; notes?: string; actionType?: ActionType; actionTreatmentProduct?: string; actionFramesKind?: FrameKind; actionFramesQty?: number; actionSupersQty?: number; completedAt?: string; createdAt: string; }
 export interface AppState { apiaries: Apiary[]; colonies: Colony[]; queens: Queen[]; actions: ColonyAction[]; health: HealthRecord[]; production: ProductionRecord[]; yearCloses: YearClose[]; tasks: ColonyTask[]; losses: ColonyLoss[]; }
 export const EMPTY_STATE: AppState = { apiaries: [], colonies: [], queens: [], actions: [], health: [], production: [], yearCloses: [], tasks: [], losses: [] };
-export const DATA_VERSION = 2;
-export const APP_VERSION = "2.2.19";
+export const DATA_VERSION = 3;
+export const APP_VERSION = "3.0.0";
 const BUILD_ID_FROM_ENV = typeof import.meta.env === "undefined" ? undefined : import.meta.env.VITE_APP_BUILD_ID;
 export const APP_BUILD_ID = BUILD_ID_FROM_ENV || "20261010-01";
 export const APP_ID = "mi-apiario";
