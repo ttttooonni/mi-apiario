@@ -243,6 +243,10 @@ export async function restoreFromBackup(state: AppState): Promise<void> {
 
 export async function putRecord<S extends StoreName>(store: S, row: AppState[S][number]): Promise<void> {
   await ensureHydrated();
+  const db = await openDb();
+  const tx = db.transaction(store, "readwrite");
+  tx.objectStore(store).put(row);
+  await transactionDone(tx);
   const collection = cache![store] as unknown as Array<AppState[S][number]>;
   const record = row as AppState[S][number] & { id?: string; year?: number };
   const key = store === "yearCloses" ? record.year : record.id;
@@ -250,16 +254,21 @@ export async function putRecord<S extends StoreName>(store: S, row: AppState[S][
     const candidate = item as AppState[S][number] & { id?: string; year?: number };
     return (store === "yearCloses" ? candidate.year : candidate.id) === key;
   });
-  if (index >= 0) collection[index] = row; else collection.push(row);
-  await persistState(cache!);
+  if (index >= 0) collection[index] = cloneState({ ...emptyState(), [store]: [row] } as AppState)[store][0] as AppState[S][number];
+  else collection.push(row);
+  lastFailed = false;
   await estimateStorage();
 }
 
 export async function deleteRecord(store: StoreName, id: IDBValidKey): Promise<void> {
   await ensureHydrated();
+  const db = await openDb();
+  const tx = db.transaction(store, "readwrite");
+  tx.objectStore(store).delete(id);
+  await transactionDone(tx);
   if (store === "yearCloses") cache!.yearCloses = cache!.yearCloses.filter((item) => item.year !== id);
   else (cache![store] as unknown as Array<{ id: string }>) = (cache![store] as unknown as Array<{ id: string }>).filter((item) => item.id !== id);
-  await persistState(cache!);
+  lastFailed = false;
   await estimateStorage();
 }
 
