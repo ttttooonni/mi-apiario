@@ -2,7 +2,7 @@ import type { AppState, YearClose } from "./types";
 import { makePersistedState, migratePersistedState, PERSISTED_VERSION } from "./migration";
 
 const DB_NAME = "mi-apiario";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const LS_KEY = "mi-apiario:v1";
 const PRE_MIGRATION_KEY = "mi-apiario:pre-migration:v1";
 
@@ -83,6 +83,24 @@ function openDb(): Promise<IDBDatabase> {
       for (const name of STORE_NAMES) {
         if (!db.objectStoreNames.contains(name)) db.createObjectStore(name, { keyPath: name === "yearCloses" ? "year" : "id" });
       }
+      // Indexes support the most common lookups without scanning every record.
+      if (request.transaction) {
+        const indexSpecs: Record<string, Array<[string, string]>> = {
+          colonies: [["apiaryId", "apiaryId"]],
+          queens: [["colonyId", "colonyId"]],
+          actions: [["colonyId", "colonyId"], ["date", "date"]],
+          health: [["colonyId", "colonyId"], ["date", "date"], ["topic", "topic"]],
+          tasks: [["colonyId", "colonyId"], ["dueDate", "dueDate"]],
+          losses: [["apiaryId", "apiaryId"], ["colonyId", "colonyId"], ["year", "year"]],
+          production: [["date", "date"], ["product", "product"]],
+        };
+        for (const [storeName, specs] of Object.entries(indexSpecs)) {
+          const store = request.transaction.objectStore(storeName);
+          for (const [indexName, keyPath] of specs) {
+            if (!store.indexNames.contains(indexName)) store.createIndex(indexName, keyPath, { unique: false });
+          }
+        }
+      }
       if (!db.objectStoreNames.contains(PHOTO_STORE)) {
         const photos = db.createObjectStore(PHOTO_STORE, { keyPath: "id" });
         photos.createIndex("apiaryId", "apiaryId", { unique: false });
@@ -134,7 +152,7 @@ async function migrateLocalStorageIfNeeded(db: IDBDatabase): Promise<void> {
   if (!raw) {
     const tx = db.transaction(META_STORE, "readwrite");
     tx.objectStore(META_STORE).put({ key: "localStorageMigrated", value: true });
-    tx.objectStore(META_STORE).put({ key: "migratedFromVersion", value: migratedState ? migratePersistedState(parsed).version : 1 });
+    tx.objectStore(META_STORE).put({ key: "migratedFromVersion", value: 1 });
     await transactionDone(tx);
     return;
   }
