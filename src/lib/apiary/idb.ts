@@ -223,6 +223,17 @@ export async function runWrite<T>(fn: () => Promise<T> | T): Promise<T> {
   }
 }
 
+export async function transactionWrite(stores: readonly StoreName[], mutate: (tx: IDBTransaction) => void): Promise<void> {
+  await ensureHydrated();
+  const db = await openDb();
+  const tx = db.transaction([...stores], "readwrite");
+  mutate(tx);
+  await transactionDone(tx);
+  cache = await readAll(db);
+  lastFailed = false;
+  await estimateStorage();
+}
+
 export async function replaceAll(state: AppState): Promise<void> {
   await ensureHydrated();
   const db = await openDb();
