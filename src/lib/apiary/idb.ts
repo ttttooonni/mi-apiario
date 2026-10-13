@@ -242,23 +242,25 @@ export async function restoreFromBackup(state: AppState): Promise<void> {
 }
 
 export async function putRecord<S extends StoreName>(store: S, row: AppState[S][number]): Promise<void> {
-  await runWrite(() => {
-    const collection = cache![store] as unknown as Array<AppState[S][number]>;
-    const record = row as AppState[S][number] & { id?: string; year?: number };
-    const key = store === "yearCloses" ? record.year : record.id;
-    const index = collection.findIndex((item) => {
-      const candidate = item as AppState[S][number] & { id?: string; year?: number };
-      return (store === "yearCloses" ? candidate.year : candidate.id) === key;
-    });
-    if (index >= 0) collection[index] = row; else collection.push(row);
+  await ensureHydrated();
+  const collection = cache![store] as unknown as Array<AppState[S][number]>;
+  const record = row as AppState[S][number] & { id?: string; year?: number };
+  const key = store === "yearCloses" ? record.year : record.id;
+  const index = collection.findIndex((item) => {
+    const candidate = item as AppState[S][number] & { id?: string; year?: number };
+    return (store === "yearCloses" ? candidate.year : candidate.id) === key;
   });
+  if (index >= 0) collection[index] = row; else collection.push(row);
+  await persistState(cache!);
+  await estimateStorage();
 }
 
 export async function deleteRecord(store: StoreName, id: IDBValidKey): Promise<void> {
-  await runWrite(() => {
-    if (store === "yearCloses") cache!.yearCloses = cache!.yearCloses.filter((item) => item.year !== id);
-    else (cache![store] as unknown as Array<{ id: string }>) = (cache![store] as unknown as Array<{ id: string }>).filter((item) => item.id !== id);
-  });
+  await ensureHydrated();
+  if (store === "yearCloses") cache!.yearCloses = cache!.yearCloses.filter((item) => item.year !== id);
+  else (cache![store] as unknown as Array<{ id: string }>) = (cache![store] as unknown as Array<{ id: string }>).filter((item) => item.id !== id);
+  await persistState(cache!);
+  await estimateStorage();
 }
 
 export async function deleteApiaryCascade(_state: AppState, apiaryId: string): Promise<void> {
