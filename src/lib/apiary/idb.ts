@@ -112,11 +112,12 @@ function openDatabase(): Promise<IDBDatabase> {
 
 async function readAllFromDb(db: IDBDatabase): Promise<AppState> {
   const tx = db.transaction([...STORE_NAMES], "readonly");
+  const done = transactionDone(tx);
   const rows = await Promise.all(STORE_NAMES.map(async store => {
     const values = await request(tx.objectStore(store).getAll());
     return [store, values] as const;
   }));
-  await transactionDone(tx);
+  await done;
   const state = emptyClone();
   for (const [store, values] of rows) {
     state[STORE_KEYS[store]] = values as never;
@@ -126,32 +127,36 @@ async function readAllFromDb(db: IDBDatabase): Promise<AppState> {
 
 async function isMigrated(db: IDBDatabase): Promise<boolean> {
   const tx = db.transaction([META_STORE], "readonly");
+  const done = transactionDone(tx);
   const row = await request(tx.objectStore(META_STORE).get(MIGRATION_KEY)) as { key: string; value: boolean } | undefined;
-  await transactionDone(tx);
+  await done;
   return row?.value === true;
 }
 
 async function markMigrated(db: IDBDatabase): Promise<void> {
   const tx = db.transaction([META_STORE], "readwrite");
+  const done = transactionDone(tx);
   tx.objectStore(META_STORE).put({ key: MIGRATION_KEY, value: true, migratedAt: new Date().toISOString() });
-  await transactionDone(tx);
+  await done;
 }
 
 async function writeWholeState(db: IDBDatabase, state: AppState, clearFirst = false): Promise<void> {
   const tx = db.transaction([...STORE_NAMES], "readwrite");
+  const done = transactionDone(tx);
   for (const store of STORE_NAMES) {
     const objectStore = tx.objectStore(store);
     if (clearFirst) objectStore.clear();
     const collection = state[STORE_KEYS[store]] as unknown as PersistedRow[];
     for (const row of collection) objectStore.put(row);
   }
-  await transactionDone(tx);
+  await done;
 }
 
 async function clearWholeState(db: IDBDatabase): Promise<void> {
   const tx = db.transaction([...STORE_NAMES], "readwrite");
+  const done = transactionDone(tx);
   for (const store of STORE_NAMES) tx.objectStore(store).clear();
-  await transactionDone(tx);
+  await done;
 }
 
 function loadLegacyLocalStorage(): AppState | null {
@@ -268,14 +273,18 @@ export async function runWrite<T>(fn: () => Promise<T> | T): Promise<T> {
   const rootWrite = writeDepth === 0;
   const before = rootWrite ? cloneState(cache) : null;
   writeDepth += 1;
+  let completed = false;
   try {
     const result = await fn();
+    completed = true;
     return result;
   } finally {
     writeDepth -= 1;
     if (rootWrite && persistDirty) {
-      if (writeDepth !== 0) return;
-      if (!(await persistNow())) {
+      if (!completed) {
+        cache = before ?? cache;
+        persistDirty = false;
+      } else if (!(await persistNow())) {
         cache = before ?? cache;
         persistDirty = false;
         throw new Error("No se pudo guardar el cambio. Los datos anteriores se han conservado.");
