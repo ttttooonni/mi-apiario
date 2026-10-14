@@ -24,7 +24,7 @@ export interface ProductionRecord { id: string; product: ProductKind; date: stri
 export interface YearClose { year: number; hives: number; nucs: number; closedAt: string; notes?: string; }
 export interface ColonyLoss { id: string; apiaryId: string; colonyId?: string; colonyNumber: string; kind: ColonyKind; year: number; date: string; cause: ColonyLossCause; notes?: string; createdAt: string; }
 export type TaskPriority = "high" | "normal" | "low";
-export interface ColonyTask { id: string; colonyId: string; title: string; dueDate?: string; priority: TaskPriority; notes?: string; actionType?: ActionType; actionTreatmentProduct?: string; actionFramesKind?: FrameKind; actionFramesQty?: number; actionSupersQty?: number; completedAt?: string; createdAt: string; }
+export interface ColonyTask { id: string; colonyId: string; title: string; dueDate?: string; priority: TaskPriority; notes?: string; actionType?: ActionType; actionTreatmentProduct?: string; actionFramesKind?: FrameKind; actionFramesQty?: number; actionSupersQty?: number; actionFeedingType?: "syrup" | "fondant" | "protein" | "other"; actionFeedingAmount?: string; completedAt?: string; createdAt: string; }
 export interface AppState { apiaries: Apiary[]; colonies: Colony[]; queens: Queen[]; actions: ColonyAction[]; health: HealthRecord[]; production: ProductionRecord[]; yearCloses: YearClose[]; tasks: ColonyTask[]; losses: ColonyLoss[]; }
 export const EMPTY_STATE: AppState = { apiaries: [], colonies: [], queens: [], actions: [], health: [], production: [], yearCloses: [], tasks: [], losses: [] };
 export const DATA_VERSION = 2;
