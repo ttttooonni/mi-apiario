@@ -168,7 +168,7 @@ function ColonyPage() {
             <div className="mt-4 border-t pt-4"><p className="mb-2 text-sm font-medium">Inventario anterior (se conserva)</p>
             <div className="grid gap-3 sm:grid-cols-3">
               <label className="grid gap-1 text-sm">
-                <span className="font-medium">Cuadros normales</span>
+                <span className="font-medium">Cuadros cámara de cría</span>
                 <Input id="material-standard" type="number" min="0" step="1" defaultValue={inventory.standardFrames} />
               </label>
               <label className="grid gap-1 text-sm">
@@ -202,7 +202,7 @@ function ColonyPage() {
         ) : null}
         <div className="mt-4 grid grid-cols-3 gap-3">
           <div className="rounded-xl bg-muted/60 p-3">
-            <p className="text-xs text-muted-foreground">Cuadros normales</p>
+            <p className="text-xs text-muted-foreground">Cuadros cámara de cría</p>
             <p className="mt-1 text-2xl font-semibold tabular-nums">{inventory.standardFrames}</p>
           </div>
           <div className="rounded-xl bg-muted/60 p-3">
