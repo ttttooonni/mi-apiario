@@ -1,7 +1,7 @@
 export type ColonyKind = "hive" | "nuc";
 
 export type ActionType =
-  | "inspection" | "harvest" | "change_queen" | "add_frames" | "remove_frames"
+  | "inspection" | "harvest" | "change_queen" | "add_frames" | "remove_frames" | "feeding"
   | "add_super" | "remove_super" | "treatment" | "split" | "create_nuc" | "move" | "note";
 export type FrameKind = "standard" | "medium";
 export type ProductKind = "honey" | "propolis" | "pollen" | "wax" | "royal_jelly";
