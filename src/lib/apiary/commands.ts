@@ -45,6 +45,14 @@ export async function commitAction(action: ColonyAction): Promise<void> {
   await runWrite(() => applyAction(action));
 }
 
+/** Persists a group of independent actions in one write, preserving each colony history. */
+export async function commitActionMany(actions: ColonyAction[]): Promise<void> {
+  if (!actions.length) return;
+  await runWrite(async () => {
+    for (const action of actions) await applyAction(action);
+  });
+}
+
 async function applyHealth(row: HealthRecord): Promise<void> {
   await putRecord("health", row);
 }
