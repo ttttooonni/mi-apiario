@@ -4,35 +4,26 @@ import { makePersistedState, migratePersistedState, PERSISTED_VERSION } from "./
 const LS_KEY = "mi-apiario:v1";
 const PRE_MIGRATION_KEY = "mi-apiario:pre-migration:v1";
 const PRE_RESTORE_KEY = "mi-apiario:pre-restore:v1";
-/** Typical browser localStorage ceiling is ~5 MB. Warn before we hit it. */
+const DB_NAME = "mi-apiario";
+const DB_VERSION = 1;
+const META_STORE = "_meta";
+const MIGRATION_KEY = "localStorageMigrated";
 const SOFT_LIMIT_BYTES = 3_500_000;
 const HARD_HINT_BYTES = 5_000_000;
 
 export const STORE_NAMES = [
-  "apiaries",
-  "colonies",
-  "queens",
-  "actions",
-  "health",
-  "production",
-  "yearCloses",
-  "tasks",
-  "losses",
+  "apiaries", "colonies", "queens", "actions", "health",
+  "production", "yearCloses", "tasks", "losses",
 ] as const;
 
 type StoreName = (typeof STORE_NAMES)[number];
 
 const STORE_KEYS: Record<StoreName, keyof AppState> = {
-  apiaries: "apiaries",
-  colonies: "colonies",
-  queens: "queens",
-  actions: "actions",
-  health: "health",
-  production: "production",
-  yearCloses: "yearCloses",
-  tasks: "tasks",
-  losses: "losses",
+  apiaries: "apiaries", colonies: "colonies", queens: "queens", actions: "actions",
+  health: "health", production: "production", yearCloses: "yearCloses", tasks: "tasks", losses: "losses",
 };
+
+type PersistedRow = Record<string, unknown> & { id?: string; year?: number };
 
 export type PersistStatus = {
   ok: boolean;
@@ -46,34 +37,25 @@ export type PersistStatus = {
 
 let cache: AppState = emptyClone();
 let hydrated = false;
+let hydrating: Promise<void> | null = null;
 let writeDepth = 0;
 let persistDirty = false;
 let lastBytes = 0;
 let lastFailed = false;
 let storageCorrupt = false;
 let dataVersion = PERSISTED_VERSION;
+let dbPromise: Promise<IDBDatabase> | null = null;
 
 function emptyClone(): AppState {
   return {
-    apiaries: [],
-    colonies: [],
-    queens: [],
-    actions: [],
-    health: [],
-    production: [],
-    yearCloses: [],
-    tasks: [],
-    losses: [],
+    apiaries: [], colonies: [], queens: [], actions: [], health: [],
+    production: [], yearCloses: [], tasks: [], losses: [],
   };
 }
 
 function cloneState(state: AppState): AppState {
   if (typeof structuredClone === "function") {
-    try {
-      return structuredClone(state);
-    } catch {
-      /* fall through */
-    }
+    try { return structuredClone(state); } catch { /* fallback below */ }
   }
   return JSON.parse(JSON.stringify(state)) as AppState;
 }
@@ -82,76 +64,158 @@ function byteLength(text: string): number {
   return new TextEncoder().encode(text).length;
 }
 
-function loadFromLocalStorage(): AppState {
-  if (typeof window === "undefined") return emptyClone();
+function isBrowser(): boolean {
+  return typeof window !== "undefined";
+}
+
+export function isIndexedDbAvailable(): boolean {
+  return isBrowser() && typeof window.indexedDB !== "undefined";
+}
+
+function request<T>(req: IDBRequest<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error ?? new Error("Error de IndexedDB."));
+  });
+}
+
+function transactionDone(tx: IDBTransaction): Promise<void> {
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error ?? new Error("Error de transacción IndexedDB."));
+    tx.onabort = () => reject(tx.error ?? new Error("Transacción IndexedDB cancelada."));
+  });
+}
+
+function openDatabase(): Promise<IDBDatabase> {
+  if (!isIndexedDbAvailable()) return Promise.reject(new Error("IndexedDB no está disponible."));
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
+    const req = window.indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      for (const store of STORE_NAMES) {
+        if (!db.objectStoreNames.contains(store)) {
+          db.createObjectStore(store, { keyPath: store === "yearCloses" ? "year" : "id" });
+        }
+      }
+      if (!db.objectStoreNames.contains(META_STORE)) {
+        db.createObjectStore(META_STORE, { keyPath: "key" });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error ?? new Error("No se pudo abrir IndexedDB."));
+    req.onblocked = () => reject(new Error("IndexedDB está bloqueado por otra pestaña."));
+  });
+  return dbPromise;
+}
+
+async function readAllFromDb(db: IDBDatabase): Promise<AppState> {
+  const tx = db.transaction([...STORE_NAMES], "readonly");
+  const rows = await Promise.all(STORE_NAMES.map(async store => {
+    const values = await request(tx.objectStore(store).getAll());
+    return [store, values] as const;
+  }));
+  await transactionDone(tx);
+  const state = emptyClone();
+  for (const [store, values] of rows) {
+    state[STORE_KEYS[store]] = values as never;
+  }
+  return state;
+}
+
+async function isMigrated(db: IDBDatabase): Promise<boolean> {
+  const tx = db.transaction([META_STORE], "readonly");
+  const row = await request(tx.objectStore(META_STORE).get(MIGRATION_KEY)) as { key: string; value: boolean } | undefined;
+  await transactionDone(tx);
+  return row?.value === true;
+}
+
+async function markMigrated(db: IDBDatabase): Promise<void> {
+  const tx = db.transaction([META_STORE], "readwrite");
+  tx.objectStore(META_STORE).put({ key: MIGRATION_KEY, value: true, migratedAt: new Date().toISOString() });
+  await transactionDone(tx);
+}
+
+async function writeWholeState(db: IDBDatabase, state: AppState, clearFirst = false): Promise<void> {
+  const tx = db.transaction([...STORE_NAMES], "readwrite");
+  for (const store of STORE_NAMES) {
+    const objectStore = tx.objectStore(store);
+    if (clearFirst) objectStore.clear();
+    const collection = state[STORE_KEYS[store]] as unknown as PersistedRow[];
+    for (const row of collection) objectStore.put(row);
+  }
+  await transactionDone(tx);
+}
+
+async function clearWholeState(db: IDBDatabase): Promise<void> {
+  const tx = db.transaction([...STORE_NAMES], "readwrite");
+  for (const store of STORE_NAMES) tx.objectStore(store).clear();
+  await transactionDone(tx);
+}
+
+function loadLegacyLocalStorage(): AppState | null {
+  if (!isBrowser()) return null;
   const raw = window.localStorage.getItem(LS_KEY);
-  if (!raw) return emptyClone();
+  if (!raw) return null;
   lastBytes = byteLength(raw);
   try {
     const migrated = migratePersistedState(JSON.parse(raw));
-    if (migrated.migrated) {
-      try { window.localStorage.setItem(PRE_MIGRATION_KEY, raw); } catch { /* best effort */ }
-      const nextRaw = JSON.stringify(makePersistedState(migrated.state));
-      window.localStorage.setItem(LS_KEY, nextRaw);
-      lastBytes = byteLength(nextRaw);
-    }
     dataVersion = migrated.version;
     storageCorrupt = false;
     lastFailed = false;
+    if (migrated.migrated) {
+      try { window.localStorage.setItem(PRE_MIGRATION_KEY, raw); } catch { /* best effort */ }
+    }
     return migrated.state;
   } catch (error) {
-    // Nunca sustituimos datos ilegibles por un cuaderno vacío: propagamos el error
-    // para que la interfaz pueda informar y el usuario pueda recuperar su copia.
     storageCorrupt = true;
     lastFailed = true;
     throw error instanceof Error ? error : new Error("No se pudieron leer los datos guardados.");
   }
 }
 
-function persistNow(): boolean {
-  persistDirty = false;
-  if (storageCorrupt) {
-    lastFailed = true;
-    return false;
+async function hydrateIndexedDb(): Promise<void> {
+  const db = await openDatabase();
+  if (!(await isMigrated(db))) {
+    const legacy = loadLegacyLocalStorage();
+    if (legacy) {
+      // Migración única: primero escribimos todo en IndexedDB y solo después
+      // marcamos la migración como completada. El localStorage original se conserva.
+      await writeWholeState(db, legacy, true);
+      await markMigrated(db);
+      cache = cloneState(legacy);
+    } else {
+      await markMigrated(db);
+      cache = emptyClone();
+    }
+  } else {
+    cache = await readAllFromDb(db);
   }
-  if (typeof window === "undefined") {
-    lastFailed = false;
-    dataVersion = PERSISTED_VERSION;
-    return true;
-  }
-  try {
-    const raw = JSON.stringify(makePersistedState(cache));
-    lastBytes = byteLength(raw);
-    window.localStorage.setItem(LS_KEY, raw);
-    lastFailed = false;
-    return true;
-  } catch {
-    lastFailed = true;
-    return false;
-  }
-}
-
-function touch(): void {
-  persistDirty = true;
-  if (writeDepth === 0) persistNow();
-}
-
-function hydrate(): void {
-  if (hydrated) return;
   hydrated = true;
-  cache = loadFromLocalStorage();
+  lastFailed = false;
+  storageCorrupt = false;
+  lastBytes = byteLength(JSON.stringify(cache));
 }
 
-export function isIndexedDbAvailable(): boolean {
-  return false;
+async function hydrateLegacy(): Promise<void> {
+  hydrated = true;
+  cache = loadLegacyLocalStorage() ?? emptyClone();
+}
+
+async function hydrate(): Promise<void> {
+  if (hydrated) return;
+  if (hydrating) return hydrating;
+  hydrating = (isIndexedDbAvailable() ? hydrateIndexedDb() : hydrateLegacy())
+    .catch(error => {
+      lastFailed = true;
+      throw error;
+    })
+    .finally(() => { hydrating = null; });
+  return hydrating;
 }
 
 export function getPersistStatus(): PersistStatus {
-  try {
-    hydrate();
-  } catch {
-    // El estado corrupto se expone como diagnóstico; no debe romper la pantalla de Datos.
-  }
   return {
     ok: !lastFailed,
     bytes: lastBytes,
@@ -170,52 +234,84 @@ export function formatStorageSize(bytes: number): string {
   return `${mb.toLocaleString("es-ES", { maximumFractionDigits: 1 })} MB`;
 }
 
-/** Coalesce several writes into a single localStorage setItem. */
+async function persistNow(): Promise<boolean> {
+  persistDirty = false;
+  if (storageCorrupt) {
+    lastFailed = true;
+    return false;
+  }
+  try {
+    if (isIndexedDbAvailable()) {
+      const db = await openDatabase();
+      await writeWholeState(db, cache, true);
+      await markMigrated(db);
+    } else if (isBrowser()) {
+      const raw = JSON.stringify(makePersistedState(cache));
+      window.localStorage.setItem(LS_KEY, raw);
+    }
+    lastBytes = byteLength(JSON.stringify(cache));
+    lastFailed = false;
+    dataVersion = PERSISTED_VERSION;
+    return true;
+  } catch {
+    lastFailed = true;
+    return false;
+  }
+}
+
+function touch(): void {
+  persistDirty = true;
+}
+
 export async function runWrite<T>(fn: () => Promise<T> | T): Promise<T> {
-  hydrate();
+  await hydrate();
   const rootWrite = writeDepth === 0;
   const before = rootWrite ? cloneState(cache) : null;
-  let completed = false;
   writeDepth += 1;
   try {
     const result = await fn();
-    completed = true;
     return result;
   } finally {
     writeDepth -= 1;
     if (rootWrite && persistDirty) {
-      if (!completed) {
-        // Never leave an in-memory partial mutation after a failed operation.
+      if (writeDepth !== 0) return;
+      if (!(await persistNow())) {
         cache = before ?? cache;
         persistDirty = false;
-      } else if (!persistNow()) {
-        // localStorage quota/security failures must fail the mutation too.
-        // Otherwise the UI could report success while the change disappears
-        // on the next reload.
-        cache = before ?? cache;
-        persistDirty = false;
-        throw new Error("No se pudo guardar el cambio en este dispositivo. Descarga una copia JSON y libera espacio antes de continuar.");
+        throw new Error("No se pudo guardar el cambio. Los datos anteriores se han conservado.");
       }
     }
   }
 }
 
 export async function loadState(): Promise<AppState> {
-  hydrate();
+  await hydrate();
   return cloneState(cache);
 }
 
 export async function replaceAll(state: AppState): Promise<void> {
-  await runWrite(() => {
-    cache = cloneState(state);
-    touch();
-  });
+  await runWrite(() => { cache = cloneState(state); touch(); });
 }
 
-/** Explicit recovery path used only after a validated backup has been imported. */
 export async function restoreFromBackup(state: AppState): Promise<void> {
-  hydrate();
-  if (typeof window !== "undefined") {
+  await hydrate();
+  if (isIndexedDbAvailable()) {
+    const db = await openDatabase();
+    // El estado actual queda en localStorage como red de seguridad antes de sustituirlo.
+    if (isBrowser()) {
+      try {
+        const current = JSON.stringify(makePersistedState(cache));
+        window.localStorage.setItem(PRE_RESTORE_KEY, current);
+      } catch { /* best effort */ }
+    }
+    try {
+      await writeWholeState(db, state, true);
+      await markMigrated(db);
+    } catch {
+      lastFailed = true;
+      throw new Error("No se pudo restaurar la copia. Los datos anteriores se han conservado.");
+    }
+  } else if (isBrowser()) {
     try {
       const currentRaw = window.localStorage.getItem(LS_KEY);
       if (currentRaw) window.localStorage.setItem(PRE_RESTORE_KEY, currentRaw);
@@ -228,12 +324,11 @@ export async function restoreFromBackup(state: AppState): Promise<void> {
   cache = cloneState(state);
   storageCorrupt = false;
   lastFailed = false;
-  lastBytes = typeof window === "undefined" ? 0 : byteLength(JSON.stringify(makePersistedState(cache)));
+  lastBytes = byteLength(JSON.stringify(cache));
   hydrated = true;
   dataVersion = PERSISTED_VERSION;
   persistDirty = false;
 }
-
 
 export async function putRecord<S extends StoreName>(
   store: S,
@@ -243,7 +338,7 @@ export async function putRecord<S extends StoreName>(
     const collection = cache[STORE_KEYS[store]] as Array<AppState[S][number]>;
     const record = row as AppState[S][number] & { id?: string; year?: number };
     const key = store === "yearCloses" ? record.year : record.id;
-    const index = collection.findIndex((item) => {
+    const index = collection.findIndex(item => {
       const candidate = item as AppState[S][number] & { id?: string; year?: number };
       return (store === "yearCloses" ? candidate.year : candidate.id) === key;
     });
@@ -255,63 +350,43 @@ export async function putRecord<S extends StoreName>(
 
 export async function deleteRecord(store: StoreName, id: IDBValidKey): Promise<void> {
   await runWrite(() => {
-  switch (store) {
-    case "apiaries":
-      cache.apiaries = cache.apiaries.filter((item) => item.id !== id);
-      break;
-    case "colonies":
-      cache.colonies = cache.colonies.filter((item) => item.id !== id);
-      break;
-    case "queens":
-      cache.queens = cache.queens.filter((item) => item.id !== id);
-      break;
-    case "actions":
-      cache.actions = cache.actions.filter((item) => item.id !== id);
-      break;
-    case "health":
-      cache.health = cache.health.filter((item) => item.id !== id);
-      break;
-    case "production":
-      cache.production = cache.production.filter((item) => item.id !== id);
-      break;
-    case "yearCloses":
-      cache.yearCloses = cache.yearCloses.filter((item) => item.year !== id);
-      break;
-    case "tasks":
-      cache.tasks = cache.tasks.filter((item) => item.id !== id);
-      break;
-    case "losses":
-      cache.losses = cache.losses.filter((item) => item.id !== id);
-      break;
-  }
-  touch();
+    switch (store) {
+      case "apiaries": cache.apiaries = cache.apiaries.filter(item => item.id !== id); break;
+      case "colonies": cache.colonies = cache.colonies.filter(item => item.id !== id); break;
+      case "queens": cache.queens = cache.queens.filter(item => item.id !== id); break;
+      case "actions": cache.actions = cache.actions.filter(item => item.id !== id); break;
+      case "health": cache.health = cache.health.filter(item => item.id !== id); break;
+      case "production": cache.production = cache.production.filter(item => item.id !== id); break;
+      case "yearCloses": cache.yearCloses = cache.yearCloses.filter(item => item.year !== id); break;
+      case "tasks": cache.tasks = cache.tasks.filter(item => item.id !== id); break;
+      case "losses": cache.losses = cache.losses.filter(item => item.id !== id); break;
+    }
+    touch();
   });
 }
 
 export async function deleteApiaryCascade(_state: AppState, apiaryId: string): Promise<void> {
   await runWrite(() => {
-    const colonyIds = new Set(
-      cache.colonies.filter((item) => item.apiaryId === apiaryId).map((item) => item.id),
-    );
-    cache.apiaries = cache.apiaries.filter((item) => item.id !== apiaryId);
-    cache.colonies = cache.colonies.filter((item) => item.apiaryId !== apiaryId);
-    cache.queens = cache.queens.filter((item) => !colonyIds.has(item.colonyId));
-    cache.actions = cache.actions.filter((item) => !colonyIds.has(item.colonyId));
-    cache.health = cache.health.filter((item) => !colonyIds.has(item.colonyId));
-    cache.tasks = cache.tasks.filter((item) => !colonyIds.has(item.colonyId));
+    const colonyIds = new Set(cache.colonies.filter(item => item.apiaryId === apiaryId).map(item => item.id));
+    cache.apiaries = cache.apiaries.filter(item => item.id !== apiaryId);
+    cache.colonies = cache.colonies.filter(item => item.apiaryId !== apiaryId);
+    cache.queens = cache.queens.filter(item => !colonyIds.has(item.colonyId));
+    cache.actions = cache.actions.filter(item => !colonyIds.has(item.colonyId));
+    cache.health = cache.health.filter(item => !colonyIds.has(item.colonyId));
+    cache.tasks = cache.tasks.filter(item => !colonyIds.has(item.colonyId));
     // Las pérdidas forman parte del histórico y nunca se borran al eliminar un apiario.
-    persistDirty = true;
+    touch();
   });
 }
 
 export async function deleteColonyCascade(_state: AppState, colonyId: string): Promise<void> {
   await runWrite(() => {
-    cache.colonies = cache.colonies.filter((item) => item.id !== colonyId);
-    cache.queens = cache.queens.filter((item) => item.colonyId !== colonyId);
-    cache.actions = cache.actions.filter((item) => item.colonyId !== colonyId);
-    cache.health = cache.health.filter((item) => item.colonyId !== colonyId);
-    cache.tasks = cache.tasks.filter((item) => item.colonyId !== colonyId);
-    persistDirty = true;
+    cache.colonies = cache.colonies.filter(item => item.id !== colonyId);
+    cache.queens = cache.queens.filter(item => item.colonyId !== colonyId);
+    cache.actions = cache.actions.filter(item => item.colonyId !== colonyId);
+    cache.health = cache.health.filter(item => item.colonyId !== colonyId);
+    cache.tasks = cache.tasks.filter(item => item.colonyId !== colonyId);
+    touch();
   });
 }
 
