@@ -33,45 +33,64 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    let checking = false;
 
     async function checkVersion() {
-      let seenVersion: string | null = null;
-      let seenBuildId: string | null = null;
+      if (checking || document.visibilityState === "hidden") return;
+      checking = true;
       try {
-        seenVersion = window.localStorage.getItem("mi-apiario:app-version-seen");
-        seenBuildId = window.localStorage.getItem("mi-apiario:app-build-seen");
-      } catch {
-        // El aviso seguirá funcionando aunque localStorage no esté disponible.
-      }
-
-      let targetVersion = APP_VERSION;
-      let targetBuildId = APP_BUILD_ID;
-
-      try {
-        const response = await fetch(`${import.meta.env.BASE_URL}version.json?ts=${Date.now()}`, {
-          cache: "no-store",
-          headers: { "Cache-Control": "no-cache" },
-        });
-        if (response.ok) {
-          const remote = (await response.json()) as { version?: string; buildId?: string };
-          if (remote.version) targetVersion = remote.version;
-          if (remote.buildId) targetBuildId = remote.buildId;
+        let seenVersion: string | null = null;
+        let seenBuildId: string | null = null;
+        try {
+          seenVersion = window.localStorage.getItem("mi-apiario:app-version-seen");
+          seenBuildId = window.localStorage.getItem("mi-apiario:app-build-seen");
+        } catch {
+          // El aviso seguirá funcionando aunque localStorage no esté disponible.
         }
-      } catch {
-        // Sin red usamos la versión incluida en la aplicación.
-      }
 
-      if (cancelled) return;
-      setUpdateVersion(targetVersion);
-      setUpdateBuildId(targetBuildId);
-      const appIsOutdated = targetVersion !== APP_VERSION || targetBuildId !== APP_BUILD_ID;
-      const thisUpdateWasDismissed = seenVersion === targetVersion && seenBuildId === targetBuildId;
-      setUpdateVisible(appIsOutdated && !thisUpdateWasDismissed);
+        let targetVersion = APP_VERSION;
+        let targetBuildId = APP_BUILD_ID;
+
+        try {
+          const response = await fetch(
+            `${import.meta.env.BASE_URL}version.json?ts=${Date.now()}`,
+            { cache: "no-store", headers: { "Cache-Control": "no-cache" } },
+          );
+          if (response.ok) {
+            const remote = (await response.json()) as { version?: string; buildId?: string };
+            if (remote.version) targetVersion = remote.version;
+            if (remote.buildId) targetBuildId = remote.buildId;
+          }
+        } catch {
+          // Sin red usamos la versión incluida en la aplicación.
+        }
+
+        if (cancelled) return;
+        setUpdateVersion(targetVersion);
+        setUpdateBuildId(targetBuildId);
+        const appIsOutdated = targetVersion !== APP_VERSION || targetBuildId !== APP_BUILD_ID;
+        const thisUpdateWasDismissed = seenVersion === targetVersion && seenBuildId === targetBuildId;
+        setUpdateVisible(appIsOutdated && !thisUpdateWasDismissed);
+      } finally {
+        checking = false;
+      }
     }
 
+    const checkWhenVisible = () => {
+      if (document.visibilityState === "visible") void checkVersion();
+    };
+
     void checkVersion();
+    window.addEventListener("focus", checkWhenVisible);
+    document.addEventListener("visibilitychange", checkWhenVisible);
+    // Algunas PWA instaladas no emiten focus de forma consistente al volver del segundo plano.
+    const interval = window.setInterval(checkWhenVisible, 10 * 60 * 1000);
+
     return () => {
       cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", checkWhenVisible);
+      document.removeEventListener("visibilitychange", checkWhenVisible);
     };
   }, []);
 
