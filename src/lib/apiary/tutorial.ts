@@ -1,29 +1,41 @@
-export const TUTORIAL_KEY = "mi-apiario:tutorial-v2";
+export const TUTORIAL_KEY = "mi-apiario:tutorial-v3";
 
 export const TUTORIAL_STEPS = [
   {
-    title: "Tu cuaderno, en este dispositivo",
-    body: "mi-apiario guarda apiarios, colonias, reinas, acciones, sanidad y producción aquí mismo. No hay cuenta ni servidor. Lo que ves es lo que tienes.",
+    title: "Bienvenido a Mi Apiario",
+    body: "Es un cuaderno para organizar tu explotación apícola: apiarios, colmenas, núcleos, tareas, sanidad, producción e histórico. Está pensado para usarlo en el móvil y también funciona sin conexión cuando la aplicación ya está cargada.",
   },
   {
-    title: "Apiarios, colmenas y núcleos",
-    body: "Un apiario agrupa el patio. Las colmenas y los núcleos se registran por separado, cada uno con su ficha y su historial de acciones habituales.",
+    title: "La pantalla de inicio",
+    body: "Aquí tienes un resumen: cuántos apiarios, colmenas y núcleos hay, la producción del año y las tareas pendientes. Si algo queda pendiente, puedes entrar en la tarea o en la colonia correspondiente.",
   },
   {
-    title: "La reina lleva el color del año",
-    body: "El marcado sigue el código internacional: el color sale del año de introducción. No se elige a mano. Un cambio de reina queda en el historial.",
+    title: "Apiarios y ficha de colonia",
+    body: "En «Apiarios» eliges el apiario y después la colmena o el núcleo. En su ficha consulta los datos y añade acciones con fecha y observaciones. Mantén los números claros para localizar cada colonia durante la visita.",
   },
   {
-    title: "Sanidad, con la varroa delante",
-    body: "Cada tratamiento de varroa se anota en la colmena: fecha, producto y nota. En Sanidad también quedan loque, nosema, pollo escayolado, velutina y los muestreos.",
+    title: "Anota lo que haces",
+    body: "Registra una revisión, un cambio de material, un traslado, una cosecha o una nota cuando ocurra. Cada acción queda vinculada a su colonia y se conserva en su historial. Anotar una sola vez no debe sustituir el historial de las demás colonias.",
   },
   {
-    title: "Producción e histórico",
-    body: "Los lotes se anotan en la sala de extracción, no en el número de colmena. El censo de un año cerrado no se inventa a partir de las colmenas de hoy.",
+    title: "Alimentación: solo cuando haga falta",
+    body: "La alimentación es una acción propia, independiente de Sanidad. Se usa cuando las condiciones y reservas lo aconsejan, no como tarea rutinaria durante todo el año. Indica el alimento, la cantidad por colonia, la fecha y una nota si ayuda a recordar el motivo.",
   },
   {
-    title: "Descarga la aplicación",
-    body: "Instálala en el teléfono, el iPad o el ordenador. Queda en la pantalla de inicio, funciona sin visor y los datos siguen en el dispositivo. En Datos puedes además guardar un JSON de respaldo.",
+    title: "Acciones en cascada",
+    body: "Ejemplo: tienes 20 colonias y hoy alimentas 8. En «Acciones del apiario», selecciona esas 8, elige «Alimentación» y registra los datos una sola vez. La app guarda 8 acciones individuales, una en el historial de cada colonia. Las otras 12 pueden quedar como tareas pendientes si activas esa opción.",
+  },
+  {
+    title: "Sanidad y tratamientos",
+    body: "Usa «Sanidad» para controles, observaciones y tratamientos sanitarios, por ejemplo los relacionados con varroa. No registres la alimentación como si fuera un tratamiento: son cosas distintas y deben consultarse por separado.",
+  },
+  {
+    title: "Histórico y producción",
+    body: "El histórico te permite consultar qué se registró, en qué colonia y en qué fecha. La producción se anota por producto y lote en su apartado. Revisa el historial si necesitas recordar qué se recomendó, qué hiciste y cuándo.",
+  },
+  {
+    title: "Copias, restauración y actualizaciones",
+    body: "En «Datos» descarga regularmente una copia JSON y guárdala fuera del móvil. Para restaurar, selecciona una copia válida: sustituirá los datos actuales por los de ese archivo, así que conserva siempre la copia más reciente. Las actualizaciones de la app no deben borrar el cuaderno. En Android, iPhone o iPad, vuelve a abrir la aplicación con conexión y pulsa «Actualizar» si aparece el aviso; después comprueba que tus datos siguen ahí.",
   },
 ] as const;
 
