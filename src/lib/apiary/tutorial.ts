@@ -3,7 +3,7 @@ export const TUTORIAL_KEY = "mi-apiario:tutorial-v3";
 export const TUTORIAL_STEPS = [
   {
     title: "Bienvenido a Mi Apiario",
-    body: "Es un cuaderno para organizar tu explotación apícola: apiarios, colmenas, núcleos, tareas, sanidad, producción e histórico. Está pensado para usarlo en el móvil y también funciona sin conexión cuando la aplicación ya está cargada.",
+    body: "Es un cuaderno para organizar tu explotación apícola: apiarios, colmenas, núcleos, tareas, sanidad, producción e histórico. Está pensado para usarlo en el móvil. Los datos se guardan en este dispositivo; antes de salir sin cobertura, abre la app y comprueba que puedes entrar en las pantallas que vas a necesitar.",
   },
   {
     title: "La pantalla de inicio",
