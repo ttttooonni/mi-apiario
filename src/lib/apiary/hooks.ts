@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { importBackup } from "./backup";
-import { commitAction, commitHealth, commitHealthMany, removeAction, removeHealth } from "./commands";
+import { commitAction, commitActionMany, commitHealth, commitHealthMany, removeAction, removeHealth } from "./commands";
 import {
   deleteApiaryCascade,
   deleteColonyCascade,
@@ -75,6 +75,11 @@ export function useAppMutations() {
 
   const saveAction = useMutation({
     mutationFn: (row: AppState["actions"][number]) => commitAction(row),
+    onSuccess: invalidate,
+  });
+
+  const saveActionMany = useMutation({
+    mutationFn: (rows: AppState["actions"]) => commitActionMany(rows),
     onSuccess: invalidate,
   });
 
@@ -169,6 +174,7 @@ export function useAppMutations() {
     saveColony,
     saveQueen,
     saveAction,
+    saveActionMany,
     saveProduction,
     saveYearClose,
     saveTask,
