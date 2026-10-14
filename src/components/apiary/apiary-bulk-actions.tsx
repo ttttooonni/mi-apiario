@@ -5,18 +5,20 @@ import { Card } from "@/components/ui/card";
 import { ACTION_LABEL, newId, nowIso, todayISO, type ActionType, type AppState, type Colony, useAppMutations } from "@/lib/apiary";
 
 const BULK_TYPES: Array<{ type: ActionType; label: string }> = [
-  { type: "inspection", label: "Revisión" }, { type: "treatment", label: "Tratamiento" },
+  { type: "inspection", label: "Revisión" }, { type: "treatment", label: "Tratamiento" }, { type: "feeding", label: "Alimentación" },
   { type: "add_frames", label: "Añadir marcos" }, { type: "remove_frames", label: "Retirar marcos" },
   { type: "add_super", label: "Colocar alza" }, { type: "remove_super", label: "Retirar alza" },
   { type: "harvest", label: "Cosecha" }, { type: "note", label: "Nota" },
 ];
 
 export function ApiaryBulkActions({ state: _state, colonies }: { state: AppState; colonies: Colony[] }) {
-  const { saveAction, saveTask } = useAppMutations();
+  const { saveActionMany, saveTask } = useAppMutations();
   const [selected, setSelected] = useState<string[]>(() => colonies.map((colony) => colony.id));
   const [type, setType] = useState<ActionType>("inspection");
   const [date, setDate] = useState(todayISO());
   const [product, setProduct] = useState("");
+  const [feedingType, setFeedingType] = useState<"syrup" | "fondant" | "protein" | "other">("syrup");
+  const [feedingAmount, setFeedingAmount] = useState("");
   const [notes, setNotes] = useState("");
   const [framesQty, setFramesQty] = useState("1");
   const [supersQty, setSupersQty] = useState("1");
@@ -37,15 +39,16 @@ export function ApiaryBulkActions({ state: _state, colonies }: { state: AppState
     setBusy(true);
     try {
       const createdAt = nowIso();
-      for (const colonyId of selected) {
-        await saveAction.mutateAsync({
-          id: newId(), colonyId, type, date, notes: notes.trim() || undefined, createdAt,
-          treatmentProduct: type === "treatment" ? product.trim() : undefined,
-          framesKind: type === "add_frames" || type === "remove_frames" ? "standard" : undefined,
-          framesQty: type === "add_frames" || type === "remove_frames" ? Math.max(1, Number(framesQty) || 1) : undefined,
-          supersQty: type === "add_super" || type === "remove_super" ? Math.max(1, Number(supersQty) || 1) : undefined,
-        });
-      }
+      const actions = selected.map((colonyId) => ({
+        id: newId(), colonyId, type, date, notes: notes.trim() || undefined, createdAt,
+        treatmentProduct: type === "treatment" ? product.trim() : undefined,
+        feedingType: type === "feeding" ? feedingType : undefined,
+        feedingAmount: type === "feeding" ? feedingAmount.trim() || undefined : undefined,
+        framesKind: type === "add_frames" || type === "remove_frames" ? "standard" as const : undefined,
+        framesQty: type === "add_frames" || type === "remove_frames" ? Math.max(1, Number(framesQty) || 1) : undefined,
+        supersQty: type === "add_super" || type === "remove_super" ? Math.max(1, Number(supersQty) || 1) : undefined,
+      }));
+      await saveActionMany.mutateAsync(actions);
       if (createTasks) {
         for (const colony of excluded) {
           await saveTask.mutateAsync({
@@ -56,6 +59,8 @@ export function ApiaryBulkActions({ state: _state, colonies }: { state: AppState
             actionFramesKind: type === "add_frames" || type === "remove_frames" ? "standard" : undefined,
             actionFramesQty: type === "add_frames" || type === "remove_frames" ? Math.max(1, Number(framesQty) || 1) : undefined,
             actionSupersQty: type === "add_super" || type === "remove_super" ? Math.max(1, Number(supersQty) || 1) : undefined,
+            actionFeedingType: type === "feeding" ? feedingType : undefined,
+            actionFeedingAmount: type === "feeding" ? feedingAmount.trim() || undefined : undefined,
             priority: "normal",
             notes: "Quedó fuera de la acción colectiva del " + date + (notes.trim() ? ". " + notes.trim() : ""),
             createdAt,
@@ -63,7 +68,7 @@ export function ApiaryBulkActions({ state: _state, colonies }: { state: AppState
         }
       }
       toast.success(selected.length + " registradas" + (createTasks && excluded.length ? " · " + excluded.length + " tareas pendientes" : ""));
-      setSelected(colonies.map((colony) => colony.id)); setNotes(""); setProduct("");
+      setSelected(colonies.map((colony) => colony.id)); setNotes(""); setProduct(""); setFeedingAmount("");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "No se pudo completar la acción");
     } finally { setBusy(false); }
@@ -88,6 +93,7 @@ export function ApiaryBulkActions({ state: _state, colonies }: { state: AppState
     <div className="mt-5 grid gap-3 border-t pt-4">
       <label className="grid gap-1 text-sm font-medium">Acción<select className="h-11 rounded-md border border-input bg-card px-3 text-base" value={type} onChange={(event) => setType(event.target.value as ActionType)}>{BULK_TYPES.map((item) => <option key={item.type} value={item.type}>{item.label}</option>)}</select></label>
       <label className="grid gap-1 text-sm font-medium">Fecha<input className="h-11 rounded-md border border-input bg-card px-3 text-base" type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
+      {type === "feeding" ? <div className="grid gap-3 sm:grid-cols-2"><label className="grid gap-1 text-sm font-medium">Alimento<select className="h-11 rounded-md border border-input bg-card px-3 text-base" value={feedingType} onChange={(event) => setFeedingType(event.target.value as typeof feedingType)}><option value="syrup">Jarabe</option><option value="fondant">Fondant</option><option value="protein">Proteico</option><option value="other">Otro</option></select></label><label className="grid gap-1 text-sm font-medium">Cantidad por colmena<input className="h-11 rounded-md border border-input bg-card px-3 text-base" value={feedingAmount} onChange={(event) => setFeedingAmount(event.target.value)} placeholder="Ej. 1 kg" /></label></div> : null}
       {type === "treatment" ? <label className="grid gap-1 text-sm font-medium">Producto<input className="h-11 rounded-md border border-input bg-card px-3 text-base" value={product} onChange={(event) => setProduct(event.target.value)} placeholder="Ácido oxálico, timol…" /></label> : null}
       {type === "add_frames" || type === "remove_frames" ? <label className="grid gap-1 text-sm font-medium">Cantidad de marcos<input className="h-11 rounded-md border border-input bg-card px-3 text-base" type="number" min="1" value={framesQty} onChange={(event) => setFramesQty(event.target.value)} /></label> : null}
       {type === "add_super" || type === "remove_super" ? <label className="grid gap-1 text-sm font-medium">Número de alzas<input className="h-11 rounded-md border border-input bg-card px-3 text-base" type="number" min="1" value={supersQty} onChange={(event) => setSupersQty(event.target.value)} /></label> : null}
