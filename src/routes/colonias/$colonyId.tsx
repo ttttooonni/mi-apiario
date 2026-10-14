@@ -56,6 +56,7 @@ function ColonyPage() {
   const [showAllLogs, setShowAllLogs] = useState(false);
   const [showAllHealth, setShowAllHealth] = useState(false);
   const [materialOpen, setMaterialOpen] = useState(false);
+  const [bodiesDraft, setBodiesDraft] = useState<import("@/lib/apiary").HiveBody[]>([]);
 
   const colony = data.colonies.find((item) => item.id === colonyId);
   if (!colony) {
@@ -147,12 +148,24 @@ function ColonyPage() {
               Puedes corregir aquí el material real sin crear una acción. El historial de movimientos se conserva.
             </p>
           </div>
-          <Button size="sm" variant="outline" onClick={() => setMaterialOpen((value) => !value)}>
-            {materialOpen ? "Cerrar" : "Editar material"}
+          <Button size="sm" variant="outline" onClick={() => { setBodiesDraft(colony.bodies ?? []); setMaterialOpen((value) => !value); }}>
+            {materialOpen ? "Cerrar" : "Editar cuerpos"}
           </Button>
         </div>
         {materialOpen ? (
           <div className="mt-4 rounded-xl border bg-muted/30 p-4">
+            <p className="mb-3 text-sm text-muted-foreground">Registra cada cuerpo por separado. Selecciona entre 1 y 10 cuadros reales.</p>
+            <div className="grid gap-3">
+              {bodiesDraft.map((body, index) => (
+                <div key={body.id} className="grid grid-cols-[minmax(0,1fr)_100px_auto] items-end gap-2">
+                  <label className="grid gap-1 text-sm"><span className="font-medium">Cuerpo {index + 1}</span><select className="h-10 rounded-md border border-input bg-card px-2 text-sm" value={body.kind} onChange={(event) => setBodiesDraft((items) => items.map((item) => item.id === body.id ? { ...item, kind: event.target.value as import("@/lib/apiary").HiveBodyKind } : item))}><option value="chamber">Cámara de cría</option><option value="super">Alza</option><option value="medium">Media alza</option></select></label>
+                  <label className="grid gap-1 text-sm"><span className="font-medium">Cuadros</span><select className="h-10 rounded-md border border-input bg-card px-2 text-sm" value={body.frames} onChange={(event) => setBodiesDraft((items) => items.map((item) => item.id === body.id ? { ...item, frames: Number(event.target.value) } : item))}>{Array.from({ length: 10 }, (_, i) => i + 1).map((count) => <option key={count} value={count}>{count}</option>)}</select></label>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setBodiesDraft((items) => items.filter((item) => item.id !== body.id))}>Quitar</Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" onClick={() => setBodiesDraft((items) => [...items, { id: crypto.randomUUID(), kind: "super", frames: 9 }])}>+ Añadir cuerpo</Button>
+            </div>
+            <div className="mt-4 border-t pt-4"><p className="mb-2 text-sm font-medium">Inventario anterior (se conserva)</p>
             <div className="grid gap-3 sm:grid-cols-3">
               <label className="grid gap-1 text-sm">
                 <span className="font-medium">Cuadros normales</span>
@@ -176,6 +189,7 @@ function ColonyPage() {
               const supers = Math.max(0, Number((document.getElementById("material-supers") as HTMLInputElement).value || 0));
               await saveColony.mutateAsync({
                 ...colony,
+                bodies: bodiesDraft,
                 materialStandardAdjustment: standard - historicalInventory.standardFrames,
                 materialMediumAdjustment: medium - historicalInventory.mediumFrames,
                 materialSupersAdjustment: supers - historicalInventory.supers,
@@ -183,7 +197,7 @@ function ColonyPage() {
               });
               setMaterialOpen(false);
               toast.success("Material actualizado");
-            }}>Guardar material</Button>
+            }}>Guardar material y cuerpos</Button></div>
           </div>
         ) : null}
         <div className="mt-4 grid grid-cols-3 gap-3">
