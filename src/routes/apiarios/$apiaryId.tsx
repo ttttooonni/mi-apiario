@@ -77,7 +77,7 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
   const queenInfo = queenMeta && queen ? `👑 Reina · ${formatDate(queen.introducedAt)}` : null;
   const quickInfo = [
     queenInfo,
-    `📦 ${inventory.standardFrames} cuadros${inventory.mediumFrames ? ` + ${inventory.mediumFrames} media alza` : ""} · ${inventory.supers} alzas`,
+    colony.bodies?.length ? "📦 " + colony.bodies.map((body) => (body.kind === "chamber" ? "Cría" : body.kind === "medium" ? "Media alza" : "Alza") + ": " + body.frames + " cuadros").join(" · ") : `📦 ${inventory.standardFrames} cuadros${inventory.mediumFrames ? ` + ${inventory.mediumFrames} media alza` : ""} · ${inventory.supers} alzas`,
     queen?.genetics ? `🧬 ${QUEEN_GENETICS_LABEL[queen.genetics] ?? queen.genetics}${queen.line ? ` · ${queen.line}` : ""}` : null,
     colony.temperament ? `🐝 ${profileLabels.temperament[colony.temperament]}` : null,
     colony.productivity ? `🍯 ${profileLabels.productivity[colony.productivity]}` : null,
