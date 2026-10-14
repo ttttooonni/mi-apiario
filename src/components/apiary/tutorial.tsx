@@ -81,26 +81,26 @@ function TutorialDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <p className="text-xs font-medium tracking-[0.16em] text-muted-foreground uppercase">
+      <DialogContent className="max-w-xl gap-5 p-6 sm:p-7">
+        <DialogHeader className="gap-3">
+          <p className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
             Guía · {step + 1} de {total}
           </p>
-          <DialogTitle className="flex items-center gap-2.5">
-            <span className="flex size-9 items-center justify-center rounded-lg bg-secondary text-primary">
-              <Icon className="size-4" strokeWidth={1.8} />
+          <DialogTitle className="flex items-center gap-3 pr-1 text-2xl leading-snug sm:text-3xl">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary">
+              <Icon className="size-5" strokeWidth={1.8} />
             </span>
             {current.title}
           </DialogTitle>
-          <DialogDescription>{current.body}</DialogDescription>
+          <DialogDescription className="mt-1 text-base leading-7 text-foreground sm:text-lg sm:leading-8">{current.body}</DialogDescription>
         </DialogHeader>
 
-        <ol className="flex gap-1.5" aria-hidden="true">
+        <ol className="flex gap-1.5 py-1" aria-hidden="true">
           {TUTORIAL_STEPS.map((item, index) => (
             <li
               key={item.title}
               className={cn(
-                "h-1 flex-1 rounded-full",
+                "h-1.5 flex-1 rounded-full",
                 index <= step ? "bg-primary" : "bg-secondary",
               )}
             />
