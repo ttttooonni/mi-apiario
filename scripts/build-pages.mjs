@@ -85,7 +85,7 @@ function rewriteRootUrls(html) {
 const indexPath = join(dest, "index.html");
 const rewritten = rewriteRootUrls(readFileSync(indexPath, "utf8"));
 
-const nativePwaHead = `<link rel="manifest" href="${basePrefix}/manifest.webmanifest"><link rel="apple-touch-icon" href="${basePrefix}/icon-192.png"><meta name="theme-color" content="#244A35">`;
+const iconVersion = encodeURIComponent(buildId);\nconst nativePwaHead = `<link rel="manifest" href="${basePrefix}/manifest.webmanifest?v=${iconVersion}"><link rel="apple-touch-icon" href="${basePrefix}/icon-192.png?v=${iconVersion}"><meta name="theme-color" content="#244A35">`;
 const pwaCleaned = rewritten.replace(/<link rel="manifest" href="[^"]*">/g, "").replace(/<link rel="apple-touch-icon" href="[^"]*">/g, "").replace(/<meta name="theme-color" content="[^"]*">/g, "");
 const guarded = pwaCleaned.replace("</head>", nativePwaHead + "</head>");
 writeFileSync(indexPath, guarded);
@@ -104,8 +104,8 @@ const manifest = {
   description: "Cuaderno de explotación apícola gratuito, local y sencillo.",
   lang: "es",
   icons: [
-    { src: `${startUrl}icon-192.png`, sizes: "192x192", type: "image/png", purpose: "any" },
-    { src: `${startUrl}icon-512.png`, sizes: "512x512", type: "image/png", purpose: "any" },
+    { src: `${startUrl}icon-192.png?v=${iconVersion}`, sizes: "192x192", type: "image/png", purpose: "any" },
+    { src: `${startUrl}icon-512.png?v=${iconVersion}`, sizes: "512x512", type: "image/png", purpose: "any" },
   ],
 };
 const manifestJson = `${JSON.stringify(manifest, null, 2)}\n`;
