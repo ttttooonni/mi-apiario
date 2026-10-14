@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Archive, BookOpen, CircleDot, ClipboardCheck, Download, Flower2, History, Hexagon, Home, Shield, Utensils } from "lucide-react";
+import { Archive, BookOpen, CircleDot, ClipboardCheck, Download, History, Hexagon, Home, Shield, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
