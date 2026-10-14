@@ -11,7 +11,7 @@ Revisión estática inicial de persistencia, migración, copias JSON y CI. No es
 
 ### P1 — Restauración y recuperación previa
 
-En `src/lib/apiary/idb.ts`, `restoreFromBackup` intenta guardar el estado actual en `localStorage` bajo `PRE_RESTORE_KEY`, pero captura e ignora el error. Después continúa con la sustitución completa de los almacenes IndexedDB. Si la copia preventiva falla y la restauración también falla parcialmente, la garantía de recuperación queda debilitada. Corregir para no iniciar la sustitución hasta verificar una recuperación suficiente; considerar cuota, datos grandes y navegadores que bloquean almacenamiento.
+En `src/lib/apiary/idb.ts`, `restoreFromBackup` intenta guardar el estado actual en `localStorage` bajo `PRE_RESTORE_KEY`, pero captura e ignora el error. Ese snapshot auxiliar puede no estar disponible para una recuperación manual. Importante: `writeWholeState` ejecuta los borrados y escrituras en una única transacción IndexedDB, que debe ser atómica; no se ha demostrado pérdida parcial por fallo de esa transacción. Verificar este comportamiento con pruebas y definir cómo recuperar el estado previo si la importación termina correctamente pero el usuario necesita deshacerla. Considerar cuota, datos grandes y navegadores que bloquean almacenamiento.
 
 ### P1 — Validación de copias antiguas
 
