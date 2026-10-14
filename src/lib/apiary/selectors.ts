@@ -45,19 +45,24 @@ export function sortColonies(colonies: Colony[]): Colony[] {
   );
 }
 
+export function isColonyLost(state: AppState, colonyId: string): boolean {
+  return (state.losses ?? []).some((loss) => loss.colonyId === colonyId);
+}
+
 export function coloniesOf(state: AppState, apiaryId: string): Colony[] {
-  return sortColonies(state.colonies.filter((item) => item.apiaryId === apiaryId));
+  // Las colonias perdidas se conservan en almacenamiento e historial, pero no aparecen como activas.
+  return sortColonies(state.colonies.filter((item) => item.apiaryId === apiaryId && !isColonyLost(state, item.id)));
 }
 
 export function hiveCount(state: AppState, apiaryId?: string): number {
   return state.colonies.filter(
-    (item) => item.kind === "hive" && (apiaryId ? item.apiaryId === apiaryId : true),
+    (item) => item.kind === "hive" && !isColonyLost(state, item.id) && (apiaryId ? item.apiaryId === apiaryId : true),
   ).length;
 }
 
 export function nucCount(state: AppState, apiaryId?: string): number {
   return state.colonies.filter(
-    (item) => item.kind === "nuc" && (apiaryId ? item.apiaryId === apiaryId : true),
+    (item) => item.kind === "nuc" && !isColonyLost(state, item.id) && (apiaryId ? item.apiaryId === apiaryId : true),
   ).length;
 }
 
