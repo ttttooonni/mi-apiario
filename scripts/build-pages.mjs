@@ -85,7 +85,8 @@ function rewriteRootUrls(html) {
 const indexPath = join(dest, "index.html");
 const rewritten = rewriteRootUrls(readFileSync(indexPath, "utf8"));
 
-const iconVersion = encodeURIComponent(buildId);\nconst nativePwaHead = `<link rel="manifest" href="${basePrefix}/manifest.webmanifest?v=${iconVersion}"><link rel="apple-touch-icon" href="${basePrefix}/icon-192.png?v=${iconVersion}"><meta name="theme-color" content="#244A35">`;
+const iconVersion = encodeURIComponent(buildId);
+const nativePwaHead = `<link rel="manifest" href="${basePrefix}/manifest.webmanifest?v=${iconVersion}"><link rel="apple-touch-icon" href="${basePrefix}/icon-192.png?v=${iconVersion}"><meta name="theme-color" content="#244A35">`;
 const pwaCleaned = rewritten.replace(/<link rel="manifest" href="[^"]*">/g, "").replace(/<link rel="apple-touch-icon" href="[^"]*">/g, "").replace(/<meta name="theme-color" content="[^"]*">/g, "");
 const guarded = pwaCleaned.replace("</head>", nativePwaHead + "</head>");
 writeFileSync(indexPath, guarded);
