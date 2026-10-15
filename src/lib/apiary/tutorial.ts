@@ -1,4 +1,4 @@
-export const TUTORIAL_KEY = "mi-apiario:tutorial-v3";
+export const TUTORIAL_KEY = "mi-apiario:tutorial-v4";
 
 export const TUTORIAL_STEPS = [
   {
