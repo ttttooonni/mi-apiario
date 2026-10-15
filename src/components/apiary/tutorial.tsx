@@ -19,9 +19,22 @@ import {
 } from "@/components/ui/dialog";
 import { hasSeenTutorial, markTutorialSeen, TUTORIAL_STEPS } from "@/lib/apiary/tutorial";
 import { useInstallApp } from "./install-app";
+import { useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 const ICONS = [BookOpen, Home, Hexagon, ClipboardCheck, Utensils, CircleDot, Shield, History, Archive] as const;
+
+const TUTORIAL_DESTINATIONS = [
+  { label: "Ir al inicio", to: "/" },
+  { label: "Abrir Inicio", to: "/" },
+  { label: "Abrir Apiarios", to: "/apiarios" },
+  { label: "Abrir Apiarios", to: "/apiarios" },
+  { label: "Abrir Apiarios", to: "/apiarios" },
+  { label: "Abrir Apiarios", to: "/apiarios" },
+  { label: "Abrir Sanidad", to: "/sanidad" },
+  { label: "Abrir Histórico", to: "/historico" },
+  { label: "Abrir Datos y copias", to: "/datos" },
+] as const;
 
 type TutorialContextValue = {
   show: () => void;
@@ -74,6 +87,7 @@ function TutorialDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { show: showInstall, installed } = useInstallApp();
+  const navigate = useNavigate();
   const total = TUTORIAL_STEPS.length;
   const current = TUTORIAL_STEPS[step];
   const Icon = ICONS[step] ?? BookOpen;
@@ -92,8 +106,20 @@ function TutorialDialog({
             </span>
             {current.title}
           </DialogTitle>
-          <DialogDescription className="mt-1 text-base leading-7 text-foreground sm:text-lg sm:leading-8">{current.body}</DialogDescription>
+          <DialogDescription className="mt-1 text-lg leading-8 text-foreground sm:text-xl sm:leading-9">{current.body}</DialogDescription>
         </DialogHeader>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-12 w-full justify-center text-base"
+          onClick={() => {
+            onOpenChange(false);
+            void navigate({ to: TUTORIAL_DESTINATIONS[step].to });
+          }}
+        >
+          {TUTORIAL_DESTINATIONS[step].label}
+        </Button>
 
         <ol className="flex gap-1.5 py-1" aria-hidden="true">
           {TUTORIAL_STEPS.map((item, index) => (
