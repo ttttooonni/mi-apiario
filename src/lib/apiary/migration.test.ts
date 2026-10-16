@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { makePersistedState, migratePersistedState, PERSISTED_VERSION } from "./migration";
+import { makePersistedState, migratePersistedState, PERSISTED_VERSION } from "./migration.ts";
 
 test("migra el formato v1 conservando todos los datos", () => {
   const legacy = {
