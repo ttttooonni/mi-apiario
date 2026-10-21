@@ -1,5 +1,6 @@
 import type { AppState, YearClose } from "./types";
-import { savePreRestoreSnapshot, type SnapshotTarget } from "./restore-snapshot";
+import { PreRestoreSnapshotError, type SnapshotTarget } from "./restore-snapshot";
+import { runRestore } from "./restore-flow";
 import { makePersistedState, migratePersistedState, PERSISTED_VERSION } from "./migration";
 
 const LS_KEY = "mi-apiario:v1";
@@ -338,20 +339,27 @@ export async function restoreFromBackup(state: AppState): Promise<void> {
     const targets: SnapshotTarget[] = [];
     if (isBrowser()) targets.push(localStorageSnapshotTarget());
     targets.push(indexedDbSnapshotTarget(db));
-    await savePreRestoreSnapshot(JSON.stringify(makePersistedState(cache)), targets);
     try {
-      await writeWholeState(db, state, true);
-      await markMigrated(db);
-    } catch {
+      await runRestore({
+        snapshotPayload: JSON.stringify(makePersistedState(cache)),
+        snapshotTargets: targets,
+        write: async () => { await writeWholeState(db, state, true); await markMigrated(db); },
+      });
+    } catch (error) {
+      if (error instanceof PreRestoreSnapshotError) throw error;
       lastFailed = true;
       throw new Error("No se pudo restaurar la copia. Los datos anteriores se han conservado.");
     }
   } else if (isBrowser()) {
     const currentRaw = window.localStorage.getItem(LS_KEY);
-    if (currentRaw) await savePreRestoreSnapshot(currentRaw, [localStorageSnapshotTarget()]);
     try {
-      window.localStorage.setItem(LS_KEY, JSON.stringify(makePersistedState(state)));
-    } catch {
+      await runRestore({
+        snapshotPayload: currentRaw,
+        snapshotTargets: [localStorageSnapshotTarget()],
+        write: () => window.localStorage.setItem(LS_KEY, JSON.stringify(makePersistedState(state))),
+      });
+    } catch (error) {
+      if (error instanceof PreRestoreSnapshotError) throw error;
       lastFailed = true;
       throw new Error("No se pudo restaurar la copia. Los datos anteriores se han conservado.");
     }

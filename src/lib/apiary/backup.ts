@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { todayISO } from "./dates";
 import { restoreFromBackup } from "./idb";
-import { findMissingCollections, MissingCollectionsError } from "./backup-check";
+import { applyMissingCollectionsDecision } from "./restore-flow";
 export { MissingCollectionsError } from "./backup-check";
 import { APP_ID, DATA_VERSION, type AppState, type BackupFile } from "./types";
 export type BackupSaveResult = "saved" | "downloaded" | "copied" | "cancelled";
@@ -70,17 +70,17 @@ export function parseBackup(raw: string, options: ParseBackupOptions = {}): AppS
   let json: unknown;
   try { json = JSON.parse(raw); } catch { throw new Error("El archivo no es un JSON válido."); }
   // Antes de aplicar valores por defecto: una copia actual sin sanidad/tareas/etc. no es una copia antigua.
-  if (json && typeof json === "object" && !options.allowMissingCollections) {
+  if (json && typeof json === "object") {
     const env = json as { app?: unknown; version?: unknown; data?: unknown };
-    if (env.app === APP_ID && typeof env.version === "number" && env.version <= DATA_VERSION) {
-      const missing = findMissingCollections(env.data, env.version);
-      if (missing.length > 0) throw new MissingCollectionsError(missing);
+    if (env.app === APP_ID && typeof env.version === "number" && env.version <= DATA_VERSION && env.data && typeof env.data === "object") {
+      env.data = applyMissingCollectionsDecision(env.data as Record<string, unknown>, env.version, options);
     }
   }
   const parsed = BackupSchema.safeParse(json);
   if (!parsed.success) throw new Error(zodMessage(parsed.error));
   if (parsed.data.app !== APP_ID) throw new Error("El archivo no pertenece a mi-apiario.");
   if (parsed.data.version > DATA_VERSION) throw new Error("La copia procede de una versión más nueva de Mi Apiario.");
-  return parsed.data.data as AppState;
+  // Garantía final: ninguna colección queda undefined al escribir.
+  return applyMissingCollectionsDecision(parsed.data.data as Record<string, unknown>, 1) as unknown as AppState;
 }
 export async function importBackup(input: string | { raw: string; allowMissingCollections?: boolean }): Promise<void> { const { raw, ...options } = typeof input === "string" ? { raw: input } : input; const state = parseBackup(raw, options); await restoreFromBackup(state); }

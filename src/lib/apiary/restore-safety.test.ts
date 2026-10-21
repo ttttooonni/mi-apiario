@@ -60,3 +60,70 @@ test("el aviso lista en español lo que falta", () => {
   assert.deepEqual(err.missing, ["tasks"]);
   assert.match(err.message, /tareas/);
 });
+
+// --- Camino completo de restauración (decisión + copia previa + escritura) ---
+import { applyMissingCollectionsDecision, runRestore } from "./restore-flow.ts";
+
+const ALL = ["apiaries", "colonies", "queens", "actions", "health", "production", "yearCloses", "tasks", "losses"] as const;
+type Store = Record<string, unknown[]>;
+
+function fakeStore(): Store {
+  return Object.fromEntries(ALL.map((k) => [k, [{ id: `old-${k}` }]]));
+}
+
+// Igual que writeWholeState: recorre cada colección; con undefined lanzaría TypeError.
+function writeWhole(store: Store, next: Record<string, unknown>) {
+  const staged: Store = {};
+  for (const key of ALL) {
+    const rows: unknown[] = [];
+    for (const row of next[key] as unknown[]) rows.push(row);
+    staged[key] = rows;
+  }
+  Object.assign(store, staged);
+}
+
+const incompleteV2 = { apiaries: [{ id: "a1" }], colonies: [], queens: [], actions: [], production: [], health: [{ id: "h1" }], tasks: [] };
+
+async function restore(store: Store, data: Record<string, unknown>, version: number, accept: boolean, targets: SnapshotTarget[]) {
+  const next = applyMissingCollectionsDecision(data, version, { allowMissingCollections: accept });
+  await runRestore({ snapshotPayload: JSON.stringify(store), snapshotTargets: targets, write: () => writeWhole(store, next) });
+}
+
+test("restauración: copia v2 incompleta se rechaza sin aceptación y no toca nada", async () => {
+  const store = fakeStore();
+  const before = JSON.stringify(store);
+  const ls = memoryTarget("localStorage");
+  await assert.rejects(restore(store, incompleteV2, 2, false, [ls]), MissingCollectionsError);
+  assert.equal(JSON.stringify(store), before);
+  assert.equal(ls.stored, null, "ni siquiera se hace la copia previa");
+});
+
+test("restauración: tras aceptar, se completa sin excepción ni estado parcial", async () => {
+  const store = fakeStore();
+  const before = JSON.stringify(store);
+  const ls = memoryTarget("localStorage");
+  await restore(store, incompleteV2, 2, true, [ls]);
+  assert.equal(ls.stored, before, "copia previa verificada del estado anterior");
+  assert.deepEqual(store.apiaries, [{ id: "a1" }]);
+  assert.deepEqual(store.health, [{ id: "h1" }]);
+  assert.deepEqual(store.yearCloses, []);
+  assert.deepEqual(store.losses, []);
+  for (const key of ALL) assert.ok(Array.isArray(store[key]), key);
+  assert.equal("yearCloses" in incompleteV2, false, "no se modifica el objeto de entrada");
+});
+
+test("restauración: copia v1 antigua se completa sin pedir confirmación", async () => {
+  const store = fakeStore();
+  await restore(store, { apiaries: [], colonies: [], queens: [], actions: [], production: [] }, 1, false, [memoryTarget("localStorage")]);
+  assert.deepEqual(store.tasks, []);
+});
+
+test("restauración: si falla la copia previa, los datos actuales no cambian", async () => {
+  const store = fakeStore();
+  const before = JSON.stringify(store);
+  await assert.rejects(
+    restore(store, incompleteV2, 2, true, [memoryTarget("localStorage", { quota: true }), memoryTarget("indexedDB", { quota: true })]),
+    PreRestoreSnapshotError,
+  );
+  assert.equal(JSON.stringify(store), before);
+});
