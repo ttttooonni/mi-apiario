@@ -1,4 +1,4 @@
-import { EMPTY_STATE, type AppState } from "./types";
+import { EMPTY_STATE, type AppState } from "./types.ts";
 
 export const PERSISTED_VERSION = 2;
 
