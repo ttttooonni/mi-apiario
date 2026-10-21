@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { MissingCollectionsError } from "@/lib/apiary/backup-check";
 import { ConfirmDelete } from "@/components/apiary/confirm-delete";
 import { DownloadLocalButton } from "@/components/apiary/download-local";
 import { InstallAppButton } from "@/components/apiary/install-app";
@@ -173,7 +174,17 @@ function DataPage() {
         confirmLabel="Importar"
         onConfirm={async () => {
           if (!pendingFile) return;
-          await restore.mutateAsync(pendingFile);
+          try {
+            await restore.mutateAsync(pendingFile);
+          } catch (error) {
+            if (!(error instanceof MissingCollectionsError)) throw error;
+            // Copia actual a la que le faltan apartados: pedir confirmación explícita.
+            if (!window.confirm(error.message)) {
+              toast.info("Restauración cancelada. Tus datos no se han tocado.");
+              return;
+            }
+            await restore.mutateAsync({ raw: pendingFile, allowMissingCollections: true });
+          }
           toast.success("Copia restaurada");
           setPendingFile(null);
         }}

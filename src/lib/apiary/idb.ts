@@ -1,4 +1,6 @@
 import type { AppState, YearClose } from "./types";
+import { PreRestoreSnapshotError, type SnapshotTarget } from "./restore-snapshot";
+import { runRestore } from "./restore-flow";
 import { makePersistedState, migratePersistedState, PERSISTED_VERSION } from "./migration";
 
 const LS_KEY = "mi-apiario:v1";
@@ -8,6 +10,7 @@ const DB_NAME = "mi-apiario";
 const DB_VERSION = 1;
 const META_STORE = "_meta";
 const MIGRATION_KEY = "localStorageMigrated";
+const PRE_RESTORE_META_KEY = "preRestoreSnapshot";
 const SOFT_LIMIT_BYTES = 3_500_000;
 const HARD_HINT_BYTES = 5_000_000;
 
@@ -302,30 +305,61 @@ export async function replaceAll(state: AppState): Promise<void> {
   await runWrite(() => { cache = cloneState(state); touch(); });
 }
 
+function localStorageSnapshotTarget(): SnapshotTarget {
+  return {
+    name: "localStorage",
+    write: (payload) => window.localStorage.setItem(PRE_RESTORE_KEY, payload),
+    read: () => window.localStorage.getItem(PRE_RESTORE_KEY),
+  };
+}
+
+function indexedDbSnapshotTarget(db: IDBDatabase): SnapshotTarget {
+  return {
+    name: "indexedDB",
+    write: async (payload) => {
+      const tx = db.transaction([META_STORE], "readwrite");
+      const done = transactionDone(tx);
+      tx.objectStore(META_STORE).put({ key: PRE_RESTORE_META_KEY, value: payload, savedAt: new Date().toISOString() });
+      await done;
+    },
+    read: async () => {
+      const tx = db.transaction([META_STORE], "readonly");
+      const row = await request(tx.objectStore(META_STORE).get(PRE_RESTORE_META_KEY)) as { value?: string } | undefined;
+      return row?.value ?? null;
+    },
+  };
+}
+
 export async function restoreFromBackup(state: AppState): Promise<void> {
   await hydrate();
   if (isIndexedDbAvailable()) {
     const db = await openDatabase();
-    // El estado actual queda en localStorage como red de seguridad antes de sustituirlo.
-    if (isBrowser()) {
-      try {
-        const current = JSON.stringify(makePersistedState(cache));
-        window.localStorage.setItem(PRE_RESTORE_KEY, current);
-      } catch { /* best effort */ }
-    }
+    // Requisito: el estado actual debe quedar guardado (y verificado) antes de sustituirlo.
+    // Si no cabe en localStorage se intenta en IndexedDB; si ninguno funciona, se aborta sin tocar nada.
+    const targets: SnapshotTarget[] = [];
+    if (isBrowser()) targets.push(localStorageSnapshotTarget());
+    targets.push(indexedDbSnapshotTarget(db));
     try {
-      await writeWholeState(db, state, true);
-      await markMigrated(db);
-    } catch {
+      await runRestore({
+        snapshotPayload: JSON.stringify(makePersistedState(cache)),
+        snapshotTargets: targets,
+        write: async () => { await writeWholeState(db, state, true); await markMigrated(db); },
+      });
+    } catch (error) {
+      if (error instanceof PreRestoreSnapshotError) throw error;
       lastFailed = true;
       throw new Error("No se pudo restaurar la copia. Los datos anteriores se han conservado.");
     }
   } else if (isBrowser()) {
+    const currentRaw = window.localStorage.getItem(LS_KEY);
     try {
-      const currentRaw = window.localStorage.getItem(LS_KEY);
-      if (currentRaw) window.localStorage.setItem(PRE_RESTORE_KEY, currentRaw);
-      window.localStorage.setItem(LS_KEY, JSON.stringify(makePersistedState(state)));
-    } catch {
+      await runRestore({
+        snapshotPayload: currentRaw,
+        snapshotTargets: [localStorageSnapshotTarget()],
+        write: () => window.localStorage.setItem(LS_KEY, JSON.stringify(makePersistedState(state))),
+      });
+    } catch (error) {
+      if (error instanceof PreRestoreSnapshotError) throw error;
       lastFailed = true;
       throw new Error("No se pudo restaurar la copia. Los datos anteriores se han conservado.");
     }
