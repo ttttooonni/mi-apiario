@@ -81,6 +81,7 @@ function ColonyPage() {
   const colonyTasks = (data.tasks ?? []).filter((task) => task.colonyId === colony.id);
   const inventory = inventoryForColony(data.actions, colony.id, {
     standardFrames: colony.materialStandardAdjustment,
+    superFrames: colony.materialSuperFramesAdjustment,
     mediumFrames: colony.materialMediumAdjustment,
     supers: colony.materialSupersAdjustment,
   });
@@ -166,10 +167,14 @@ function ColonyPage() {
               <Button type="button" variant="outline" onClick={() => setBodiesDraft((items) => [...items, { id: crypto.randomUUID(), kind: "super", frames: 9 }])}>+ Añadir cuerpo</Button>
             </div>
             <div className="mt-4 border-t pt-4"><p className="mb-2 text-sm font-medium">Inventario anterior (se conserva)</p>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-4">
               <label className="grid gap-1 text-sm">
                 <span className="font-medium">Cuadros cámara de cría</span>
                 <Input id="material-standard" type="number" min="0" step="1" defaultValue={inventory.standardFrames} />
+              </label>
+              <label className="grid gap-1 text-sm">
+                <span className="font-medium">Cuadros de alza</span>
+                <Input id="material-super-frames" type="number" min="0" step="1" defaultValue={inventory.superFrames} />
               </label>
               <label className="grid gap-1 text-sm">
                 <span className="font-medium">Cuadros media alza</span>
@@ -185,12 +190,14 @@ function ColonyPage() {
             </p>
             <Button className="mt-3" onClick={async () => {
               const standard = Math.max(0, Number((document.getElementById("material-standard") as HTMLInputElement).value || 0));
+              const superFrames = Math.max(0, Number((document.getElementById("material-super-frames") as HTMLInputElement).value || 0));
               const medium = Math.max(0, Number((document.getElementById("material-medium") as HTMLInputElement).value || 0));
               const supers = Math.max(0, Number((document.getElementById("material-supers") as HTMLInputElement).value || 0));
               await saveColony.mutateAsync({
                 ...colony,
                 bodies: bodiesDraft,
                 materialStandardAdjustment: standard - historicalInventory.standardFrames,
+                materialSuperFramesAdjustment: superFrames - historicalInventory.superFrames,
                 materialMediumAdjustment: medium - historicalInventory.mediumFrames,
                 materialSupersAdjustment: supers - historicalInventory.supers,
                 updatedAt: new Date().toISOString(),
@@ -200,10 +207,14 @@ function ColonyPage() {
             }}>Guardar material y cuerpos</Button></div>
           </div>
         ) : null}
-        <div className="mt-4 grid grid-cols-3 gap-3">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="rounded-xl bg-muted/60 p-3">
             <p className="text-xs text-muted-foreground">Cuadros cámara de cría</p>
             <p className="mt-1 text-2xl font-semibold tabular-nums">{inventory.standardFrames}</p>
+          </div>
+          <div className="rounded-xl bg-muted/60 p-3">
+            <p className="text-xs text-muted-foreground">Cuadros de alza</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums">{inventory.superFrames}</p>
           </div>
           <div className="rounded-xl bg-muted/60 p-3">
             <p className="text-xs text-muted-foreground">Cuadros media alza</p>

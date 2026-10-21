@@ -2,6 +2,7 @@ import type { ColonyAction, FrameKind } from "./types";
 
 export interface ColonyInventory {
   standardFrames: number;
+  superFrames: number;
   mediumFrames: number;
   supers: number;
 }
@@ -11,8 +12,8 @@ export interface ColonyInventory {
  * mutable counters that can overwrite one another. Negative totals are kept
  * visible so inconsistent historical records are not silently hidden.
  */
-export function inventoryForColony(actions: ColonyAction[], colonyId: string, adjustments?: { standardFrames?: number; mediumFrames?: number; supers?: number }): ColonyInventory {
-  const inventory: ColonyInventory = { standardFrames: 0, mediumFrames: 0, supers: 0 };
+export function inventoryForColony(actions: ColonyAction[], colonyId: string, adjustments?: { standardFrames?: number; superFrames?: number; mediumFrames?: number; supers?: number }): ColonyInventory {
+  const inventory: ColonyInventory = { standardFrames: 0, superFrames: 0, mediumFrames: 0, supers: 0 };
 
   for (const action of actions) {
     if (action.colonyId !== colonyId) continue;
@@ -33,6 +34,7 @@ export function inventoryForColony(actions: ColonyAction[], colonyId: string, ad
   }
 
   inventory.standardFrames += adjustments?.standardFrames ?? 0;
+  inventory.superFrames += adjustments?.superFrames ?? 0;
   inventory.mediumFrames += adjustments?.mediumFrames ?? 0;
   inventory.supers += adjustments?.supers ?? 0;
 
@@ -41,5 +43,6 @@ export function inventoryForColony(actions: ColonyAction[], colonyId: string, ad
 
 function addFrames(inventory: ColonyInventory, kind: FrameKind, quantity: number): void {
   if (kind === "medium") inventory.mediumFrames += quantity;
+  else if (kind === "super") inventory.superFrames += quantity;
   else inventory.standardFrames += quantity;
 }

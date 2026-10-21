@@ -3,7 +3,7 @@ export type ColonyKind = "hive" | "nuc";
 export type ActionType =
   | "inspection" | "harvest" | "change_queen" | "add_frames" | "remove_frames" | "feeding"
   | "add_super" | "remove_super" | "treatment" | "split" | "create_nuc" | "move" | "note";
-export type FrameKind = "standard" | "medium";
+export type FrameKind = "standard" | "medium" | "super";
 export type ProductKind = "honey" | "propolis" | "pollen" | "wax" | "royal_jelly";
 export type QueenColor = "white" | "yellow" | "red" | "green" | "blue";
 export type HealthTopic = "varroa" | "inspection" | "nosema" | "foulbrood" | "chalkbrood" | "hornet" | "surveillance" | "other";
@@ -18,7 +18,7 @@ export type ColonyLossCause = "dead" | "absconded" | "queenless" | "weak" | "rob
 export interface Apiary { id: string; name: string; location: string; notes?: string; photo?: string; createdAt: string; updatedAt: string; }
 export type HiveBodyKind = "chamber" | "super" | "medium";
 export interface HiveBody { id: string; kind: HiveBodyKind; frames: number; }
-export interface Colony { id: string; apiaryId: string; kind: ColonyKind; number: string; notes?: string; photo?: string; temperament?: ColonyTemperament; productivity?: ColonyProductivity; swarmingTendency?: ColonySwarming; hygiene?: ColonyHygiene; queenDominance?: QueenDominance; materialStandardAdjustment?: number; materialMediumAdjustment?: number; materialSupersAdjustment?: number; bodies?: HiveBody[]; createdAt: string; updatedAt: string; }
+export interface Colony { id: string; apiaryId: string; kind: ColonyKind; number: string; notes?: string; photo?: string; temperament?: ColonyTemperament; productivity?: ColonyProductivity; swarmingTendency?: ColonySwarming; hygiene?: ColonyHygiene; queenDominance?: QueenDominance; materialStandardAdjustment?: number; materialSuperFramesAdjustment?: number; materialMediumAdjustment?: number; materialSupersAdjustment?: number; bodies?: HiveBody[]; createdAt: string; updatedAt: string; }
 export interface Queen { id: string; colonyId: string; introducedAt: string; retiredAt?: string; retireReason?: string; origin?: string; genetics?: string; line?: string; }
 export interface ColonyAction { id: string; colonyId: string; type: ActionType; date: string; notes?: string; framesKind?: FrameKind; framesQty?: number; supersQty?: number; treatmentProduct?: string; feedingType?: "syrup" | "fondant" | "protein" | "other"; feedingAmount?: string; harvestQty?: number; moveToApiaryId?: string; queenIntroducedAt?: string; queenOrigin?: string; queenRetireReason?: string; createdAt: string; }
 export interface HealthRecord { id: string; colonyId: string; topic: HealthTopic; kind: HealthKind; date: string; product?: string; notes?: string; actionId?: string; createdAt: string; varroaMethod?: string; varroaCount?: number; varroaSampleSize?: number; foodReserve?: "good" | "low" | "very_low"; pollenReserve?: "good" | "low" | "absent"; feedingNeeded?: boolean; feedingForm?: "liquid" | "paste"; feedingType?: "syrup" | "fondant" | "protein" | "other"; feedingAmount?: string; queenSeen?: boolean; broodStatus?: "good" | "regular" | "poor"; colonyStrength?: "strong" | "medium" | "weak"; behavior?: "calm" | "normal" | "nervous" | "aggressive"; }

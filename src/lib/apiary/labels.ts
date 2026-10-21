@@ -29,7 +29,8 @@ export const ACTION_LABEL: Record<ActionType, string> = Object.fromEntries(
 ) as Record<ActionType, string>;
 
 export const FRAME_KIND_LABEL: Record<FrameKind, string> = {
-  standard: "Normal",
+  standard: "Cámara de cría",
+  super: "Alza",
   medium: "Media alza",
 };
 
@@ -63,7 +64,7 @@ export const COLONY_KIND_LABEL: Record<ColonyKind, string> = {
 };
 
 export function framesPhrase(kind: FrameKind, qty: number): string {
-  const noun = kind === "medium" ? "cuadros de media alza" : "cuadros normales";
+  const noun = kind === "medium" ? "cuadros de media alza" : kind === "super" ? "cuadros de alza" : "cuadros de cámara de cría";
   return `${qty} ${noun}`;
 }
 

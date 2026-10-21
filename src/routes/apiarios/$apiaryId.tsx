@@ -63,6 +63,7 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
   const action = lastAction(state, colony.id);
   const inventory = inventoryForColony(state.actions, colony.id, {
     standardFrames: colony.materialStandardAdjustment,
+    superFrames: colony.materialSuperFramesAdjustment,
     mediumFrames: colony.materialMediumAdjustment,
     supers: colony.materialSupersAdjustment,
   });
@@ -77,7 +78,7 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
   const queenInfo = queenMeta && queen ? `👑 Reina · ${formatDate(queen.introducedAt)}` : null;
   const quickInfo = [
     queenInfo,
-    colony.bodies?.length ? "📦 " + colony.bodies.map((body) => (body.kind === "chamber" ? "Cría" : body.kind === "medium" ? "Media alza" : "Alza") + ": " + body.frames + " cuadros").join(" · ") : `📦 ${inventory.standardFrames} cuadros${inventory.mediumFrames ? ` + ${inventory.mediumFrames} media alza` : ""} · ${inventory.supers} alzas`,
+    colony.bodies?.length ? "📦 " + colony.bodies.map((body) => (body.kind === "chamber" ? "Cría" : body.kind === "medium" ? "Media alza" : "Alza") + ": " + body.frames + " cuadros").join(" · ") : `📦 Cría ${inventory.standardFrames} · Alza ${inventory.superFrames} · Media alza ${inventory.mediumFrames} · ${inventory.supers} cuerpos de alza`,
     queen?.genetics ? `🧬 ${QUEEN_GENETICS_LABEL[queen.genetics] ?? queen.genetics}${queen.line ? ` · ${queen.line}` : ""}` : null,
     colony.temperament ? `🐝 ${profileLabels.temperament[colony.temperament]}` : null,
     colony.productivity ? `🍯 ${profileLabels.productivity[colony.productivity]}` : null,
@@ -103,7 +104,8 @@ function ColonyRow({ colony, state }: { colony: Colony; state: AppState }) {
     ["Origen de reina", queen?.origin || "Sin registrar"],
     ["Genética", queen?.genetics ? (QUEEN_GENETICS_LABEL[queen.genetics] ?? queen.genetics) : "Sin registrar"],
     ["Línea genética", queen?.line || "Sin registrar"],
-    ["Cuadros normales", String(inventory.standardFrames)],
+    ["Cuadros cámara de cría", String(inventory.standardFrames)],
+    ["Cuadros de alza", String(inventory.superFrames)],
     ["Cuadros de media alza", String(inventory.mediumFrames)],
     ["Alzas", String(inventory.supers)],
     ["Temperamento", colony.temperament ? profileLabels.temperament[colony.temperament] : "Sin registrar"],
