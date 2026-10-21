@@ -167,7 +167,7 @@ function ColonyPage() {
               <Button type="button" variant="outline" onClick={() => setBodiesDraft((items) => [...items, { id: crypto.randomUUID(), kind: "super", frames: 9 }])}>+ Añadir cuerpo</Button>
             </div>
             <div className="mt-4 border-t pt-4"><p className="mb-2 text-sm font-medium">Inventario anterior (se conserva)</p>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-4">
               <label className="grid gap-1 text-sm">
                 <span className="font-medium">Cuadros cámara de cría</span>
                 <Input id="material-standard" type="number" min="0" step="1" defaultValue={inventory.standardFrames} />
