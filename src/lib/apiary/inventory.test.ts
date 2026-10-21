@@ -12,7 +12,7 @@ test("adding a super changes only the super count, never frame counts", () => {
     action("a1", "add_frames", { framesKind: "standard", framesQty: 8 }),
     action("a2", "add_super", { supersQty: 2 }),
   ], "hive-1");
-  assert.deepEqual(result, { standardFrames: 8, mediumFrames: 0, supers: 2 });
+  assert.deepEqual(result, { standardFrames: 8, superFrames: 0, mediumFrames: 0, supers: 2 });
 });
 
 test("frame kinds and supers remain independent through additions and removals", () => {
@@ -23,7 +23,7 @@ test("frame kinds and supers remain independent through additions and removals",
     action("a4", "add_super", { supersQty: 3 }),
     action("a5", "remove_super", { supersQty: 1 }),
   ], "hive-1");
-  assert.deepEqual(result, { standardFrames: 8, mediumFrames: 5, supers: 2 });
+  assert.deepEqual(result, { standardFrames: 8, superFrames: 0, mediumFrames: 5, supers: 2 });
 });
 
 test("actions for another colony do not affect this colony's inventory", () => {
@@ -31,7 +31,17 @@ test("actions for another colony do not affect this colony's inventory", () => {
     action("a1", "add_super", { supersQty: 2 }),
     action("a2", "add_frames", { colonyId: "hive-2", framesKind: "standard", framesQty: 12 }),
   ], "hive-1");
-  assert.deepEqual(result, { standardFrames: 0, mediumFrames: 0, supers: 2 });
+  assert.deepEqual(result, { standardFrames: 0, superFrames: 0, mediumFrames: 0, supers: 2 });
+});
+
+test("frames for supers are counted separately from chamber and medium frames", () => {
+  const result = inventoryForColony([
+    action("a1", "add_frames", { framesKind: "standard", framesQty: 10 }),
+    action("a2", "add_frames", { framesKind: "super", framesQty: 8 }),
+    action("a3", "remove_frames", { framesKind: "super", framesQty: 2 }),
+    action("a4", "add_frames", { framesKind: "medium", framesQty: 5 }),
+  ], "hive-1");
+  assert.deepEqual(result, { standardFrames: 10, superFrames: 6, mediumFrames: 5, supers: 0 });
 });
 
 test("legacy super actions without a quantity count as one super", () => {
