@@ -1,1 +1,0 @@
-import{Gt as e,Yt as t,Zt as n}from"./hooks-MLUKPNW5.js";var r=n(t(),1);function i(t){let n=e();return r.useCallback(e=>n.navigate({...e,from:e.from??t?.from}),[t?.from,n])}export{i as t};
