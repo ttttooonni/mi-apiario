@@ -1,21 +1,44 @@
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button, type ButtonProps } from "@/components/ui/button";
-import { markBackupCreated, saveBackupLocally, useNotebook } from "@/lib/apiary";
+import { copyBackup, markBackupCreated, saveBackupLocally, useNotebook } from "@/lib/apiary";
+import { backupOutcome, shouldMarkBackupDone, type ConfirmAnswer } from "@/lib/apiary/backup-outcome";
 
-export async function runLocalDownload(
-  data: Parameters<typeof saveBackupLocally>[0],
-): Promise<void> {
+type BackupData = Parameters<typeof saveBackupLocally>[0];
+
+function settle(answer: ConfirmAnswer): void {
+  if (shouldMarkBackupDone(answer)) markBackupCreated();
+}
+
+function askDownloadSaved(data: BackupData, message: string): void {
+  toast(message, {
+    duration: Infinity,
+    action: { label: "Sí", onClick: () => { settle("yes"); toast.success("Copia registrada"); } },
+    cancel: {
+      label: "No",
+      onClick: () => {
+        settle("no");
+        toast.error("La copia no se ha guardado.", {
+          duration: Infinity,
+          action: {
+            label: "Copiar al portapapeles",
+            onClick: () => {
+              void copyBackup(data)
+                .then(() => { settle("copy-ok"); toast.success("JSON copiado. Pégalo en un archivo .json para guardarlo."); })
+                .catch(() => { settle("copy-failed"); toast.error("No se pudo copiar"); });
+            },
+          },
+        });
+      },
+    },
+  });
+}
+
+export async function runLocalDownload(data: BackupData): Promise<void> {
   try {
-    const result = await saveBackupLocally(data);
-    if (result === "saved" || result === "downloaded" || result === "copied") {
-      markBackupCreated();
-    }
-    if (result === "saved") toast.success("Copia guardada en este dispositivo");
-    else if (result === "downloaded") toast.success("Descarga iniciada");
-    else if (result === "copied") {
-      toast.success("JSON copiado. Pégalo en un archivo .json para guardarlo.");
-    }
+    const outcome = backupOutcome(await saveBackupLocally(data));
+    if (outcome.kind === "done") { markBackupCreated(); toast.success(outcome.message); }
+    else if (outcome.kind === "confirm") askDownloadSaved(data, outcome.message);
   } catch (error) {
     toast.error(error instanceof Error ? error.message : "No se pudo guardar la copia");
   }
